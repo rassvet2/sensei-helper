@@ -55,6 +55,17 @@
     "detail": "強化内容",
     "pieces": "消費される設計図"
   },
+  "equipmentCategory": {
+    "Hat": "帽子",
+    "Gloves": "グローブ",
+    "Shoes": "シューズ",
+    "Bag": "バッグ",
+    "Badge": "バッジ",
+    "Hairpin": "ヘアピン",
+    "Charm": "お守り",
+    "Watch": "腕時計",
+    "Necklace": "ネックレス"
+  },
   "thinsToNote": {
     "title": "注記",
     "pointThisIsEstimation": "推奨掃討回数は予測であり、実際の報酬と大きく異なる場合もあります。",

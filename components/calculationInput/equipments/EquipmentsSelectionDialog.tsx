@@ -21,7 +21,6 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {EquipmentInfoToEdit, IRequirementByEquipment} from 'stores/EquipmentsRequirementStore';
 import BuiButton from 'components/bui/BuiButton';
 import {Equipment, EquipmentCompositionType} from 'model/Equipment';
-import ItemsOnCurrentTier from 'components/calculationInput/common/ItemsOnCurrentTier';
 import EquipmentCard from 'components/bui/card/EquipmentCard';
 import {EquipmentsById} from 'components/calculationInput/PiecesCalculationCommonTypes';
 import BuiLinedText from 'components/bui/text/BuiLinedText';
@@ -40,7 +39,8 @@ import {useStore} from 'stores/WizStore';
 import {calculateRequirementAmount} from 'components/calculationInput/equipments/inventory/piecesStateCalculator';
 import UpgradeConfirmationDialog from './UpgradeConfirmationDialog';
 import {PieceState} from './inventory/PiecesInventory';
-
+import {EquipmentFilterChips, useEquipmentFilterChips} from './EquipmentFilterChips';
+import {EquipmentsList} from '../common/EquipmentsList';
 
 export interface IEquipmentFormInputs {
   neededEquipmentsCount: string;
@@ -322,6 +322,39 @@ const EquipmentsSelectionDialog = (
     }
   };
 
+  const [selected, setSelected, filter] = useEquipmentFilterChips();
+  const equipmentsList = useMemo(() => {
+    const groupByTier = !filter;
+    const equipments = Array.from(equipmentsById.values())
+        .filter((equip) => equip.equipmentCompositionType == EquipmentCompositionType.Composite)
+        .filter((equip) => equip.tier < maxTierPerCategory[equip.category]);
+
+    if (filter) {
+      const filtered = equipments.filter((equip) => !filter || filter(equip));
+      return <EquipmentsList
+        equipments={filtered}
+        selectedEquipId={baseEquipId}
+        onClick={onCurrentEquipmentChanged}/>;
+    } else {
+      const grouped = equipments.reduce((acc, equip) => {
+        acc[equip.tier] ??= {label: `T${equip.tier}`, equipments: []};
+        acc[equip.tier].equipments.push(equip);
+        return acc;
+      }, [] as any[]);
+      return <>
+        <EquipmentsList
+          equipments={grouped}
+          selectedEquipId={baseEquipId}
+          onClick={onCurrentEquipmentChanged}/>
+        {groupByTier && <div>
+          <BuiLinedText>T{overallMaxTier}</BuiLinedText>
+          <Typography sx={{color: 'text.disabled'}} variant={'subtitle1'}>
+            {t('addEquipmentDialog.cannotUpgradeFurther')}
+          </Typography>
+        </div>}
+      </>;
+    }
+  }, [baseEquipId, equipmentsById, filter, maxTierPerCategory, overallMaxTier, t]);
 
   const generateStepContent = (stepNumber: number) => {
     const baseEquipment = equipmentsById.get(baseEquipId ?? '');
@@ -329,27 +362,13 @@ const EquipmentsSelectionDialog = (
 
     switch (stepNumber) {
       case 0:
-        return equipmentsByTier ?
-            Array.from(equipmentsByTier.keys()).map(
-                (tier) => {
-                  const equipmentsOnTier = equipmentsByTier.get(tier);
-                  if (!equipmentsOnTier) return null;
-
-                  // Filters out equipments that cannot be upgraded further
-                  const filterEquipmentsOnTier = equipmentsOnTier.filter(
-                      (equipment) => equipment.tier < maxTierPerCategory[equipment.category]
-                  );
-                  return tier === overallMaxTier ?
-                      <div key={tier}>
-                        <BuiLinedText>T{tier}</BuiLinedText>
-                        <Typography sx={{color: 'text.disabled'}} variant={'subtitle1'}>
-                          {t('addEquipmentDialog.cannotUpgradeFurther')}
-                        </Typography>
-                      </div> :
-                      <ItemsOnCurrentTier key={tier} tier={tier} items={filterEquipmentsOnTier} selectedItemId={baseEquipId}
-                        handleSelectItem={onCurrentEquipmentChanged}/>;
-                }
-            ) : <CircularProgress />;
+        return !equipmentsById ? <CircularProgress /> : <>
+          <EquipmentFilterChips
+            selected={selected}
+            setSelected={setSelected}
+            maxTier={overallMaxTier} />
+          {equipmentsList}
+        </>;
       case 1:
       default:
         if (!baseEquipment) return <div></div>;
@@ -390,6 +409,7 @@ const EquipmentsSelectionDialog = (
   };
 
   return <Dialog fullWidth open={isOpened} fullScreen={isFullScreen}
+    PaperProps={{sx: {height: '100%'}}}
     keepMounted onClose={handleDialogCancel}>
     <DialogTitle>
       <Box display={'flex'}>
