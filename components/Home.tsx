@@ -25,6 +25,15 @@ import {
 import {PieceState} from 'components/calculationInput/equipments/inventory/PiecesInventory';
 import {calculatePiecesState} from 'components/calculationInput/equipments/inventory/piecesStateCalculator';
 
+const ScrollHereOnMount = () => {
+  const ref = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const ret = setTimeout(() => ref.current?.scrollIntoView({behavior: 'smooth'}), 100);
+    return () => clearTimeout(ret);
+  }, []);
+  return <div ref={ref} style={{'position': 'relative', 'bottom': '10rem'}}/>;
+};
+
 const Home: NextPage = observer((props) => {
   const store = useStore();
   const {t} = useTranslation('home');
@@ -104,15 +113,19 @@ const Home: NextPage = observer((props) => {
   const buildListStageOnlyResult = () => {
     if (solution !== ResultMode.ListStages) return null;
 
-    return <AllPotentialStages campaigns={campaigns}
-      equipmentsById={equipmentsById}
-      piecesState={piecesState}/>;
+    return <>
+      <ScrollHereOnMount />
+      <AllPotentialStages campaigns={campaigns}
+        equipmentsById={equipmentsById}
+        piecesState={piecesState}/>
+    </>;
   };
 
   const buildLinearProgrammingSolution = () =>{
     if (solution === ResultMode.ListStages|| !solution?.result) return null;
 
     return <React.Fragment>
+      <ScrollHereOnMount />
       <RecommendationsSummary onCloseInEfficacyDialog={handleCloseInEfficacyDialog}/>
       <RecommendedCampaigns
         solution={solution}
