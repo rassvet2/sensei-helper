@@ -101,7 +101,7 @@ const UpgradeConfirmationDialog = ({
         <Box className={styles.pieces}>
           {requirements && requirements.map((state) => (
             <LabeledEquipmentCard key={state.pieceId}
-              showStockCount showNeedCount
+              showTier showStockCount showNeedCount
               equipById={equipById} pieceState={state}/>
           ))}
         </Box>

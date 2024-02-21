@@ -88,8 +88,8 @@ const PiecesInventory = (
 
       const enough = inventory.needCount <= inventory.inStockCount;
 
-      return <LabeledEquipmentCard key={index} index={inventory}
-        showStockCount showNeedCount
+      return <LabeledEquipmentCard key={inventory.pieceId} index={inventory}
+        showTier showStockCount showNeedCount
         onClick={openSinglePieceUpdateDialog}
         equipById={equipmentsById} pieceState={inventory}
         badge={enough ? checkBadge : undefined} />;
