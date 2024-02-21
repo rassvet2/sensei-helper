@@ -1,7 +1,4 @@
 import styles from './PieceUpdateBox.module.scss';
-import {Card, CardActionArea} from '@mui/material';
-import EquipmentCard from 'components/bui/card/EquipmentCard';
-import BuiBanner from 'components/bui/BuiBanner';
 import Box from '@mui/material/Box';
 import PositiveIntegerOnlyInput from 'components/calculationInput/common/PositiveIntegerOnlyInput';
 import React from 'react';
@@ -10,6 +7,7 @@ import {PieceState} from 'components/calculationInput/equipments/inventory/Piece
 import {Control} from 'react-hook-form/dist/types/form';
 import {InventoryForm} from 'components/calculationInput/equipments/inventory/InventoryUpdateDialog';
 import {useTranslation} from 'next-i18next';
+import {LabeledEquipmentCard} from '../LabeledEquipmentCard';
 
 interface PieceUpdateBoxProps {
   equipmentsById:EquipmentsById,
@@ -30,14 +28,10 @@ const PieceUpdateBox = function({
   if (!pieceInfo) return null;
   return <div className={styles.equipmentInputContainer}>
 
-    <Card elevation={1}>
-      <CardActionArea disabled>
-        <div className={styles.equipmentCard}>
-          <EquipmentCard imageName={pieceInfo.icon} bottomRightText={`x${piece.inStockCount}`}/>
-          <BuiBanner label={piece.needCount.toString()} width={'120%'} />
-        </div>
-      </CardActionArea>
-    </Card>
+    <LabeledEquipmentCard
+      showTier showStockCount showNeedCount
+      pieceState={piece}
+      equipById={equipmentsById} />
     <Box sx={{mr: 2}}/>
     <PositiveIntegerOnlyInput name={piece.pieceId}
       min={0}

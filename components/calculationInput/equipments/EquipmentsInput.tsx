@@ -118,7 +118,7 @@ const EquipmentsInput = (
         );
 
         return <LabeledEquipmentCard key={index} index={index}
-          showNickname showTierChange
+          showTier showNickname showTierChange
           onClick={handleOpenDialogForEditing}
           equipById={equipmentsById}
           requirement={requirementByEquip}

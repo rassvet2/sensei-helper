@@ -1,7 +1,6 @@
 import styles from './CalculationInputCard.module.scss';
-import {Card, CardActionArea, CardContent, CircularProgress} from '@mui/material';
+import {Card, CardContent, CircularProgress} from '@mui/material';
 import BuiLinedText from 'components/bui/text/BuiLinedText';
-import BuiBanner from 'components/bui/BuiBanner';
 import BuiButton from 'components/bui/BuiButton';
 import PiecesSelectionDialog from './pieces/PiecesSelectionDialog';
 import React, {useMemo, useState} from 'react';
@@ -14,7 +13,6 @@ import Grid from '@mui/material/Unstable_Grid2';
 import {observer} from 'mobx-react-lite';
 import DropCampaignSelection from 'components/calculationInput/DropCampaignSelection';
 import {useTranslation} from 'next-i18next';
-import EquipmentCard from 'components/bui/card/EquipmentCard';
 import RequirementModeSelection from 'components/calculationInput/RequirementMode/RequirementModeSelection';
 import EquipmentsInput, {EquipmentsByTierAndCategory} from 'components/calculationInput/equipments/EquipmentsInput';
 import {PieceState} from 'components/calculationInput/equipments/inventory/PiecesInventory';
@@ -29,6 +27,7 @@ import {
   TOTAL_EQUIPMENT_TYPES,
   TOTAL_PIECE_TYPES,
 } from 'common/gtag';
+import {LabeledEquipmentCard} from './equipments/LabeledEquipmentCard';
 
 type CalculationInputCardProps = {
   store: IWizStore,
@@ -162,19 +161,12 @@ const CalculationInputCard = ({store, equipments, campaignsById, equipmentsById,
       <BuiLinedText>{t('addPiecesTitle')}</BuiLinedText>
       <div className={styles.selectedPiecesWrapper}>
         {store.equipmentsRequirementStore.requirementByPieces.map((requirementByPiece, index) => {
-          const piece = equipmentsById.get(requirementByPiece.pieceId);
-          if (!piece) return null;
-
-          return <Card key={`${requirementByPiece.pieceId}-${index}`} elevation={1} className={styles.selectedPiecesCard}
-            onClick={() => handleOpenDialogForEditing(requirementByPiece, index)}>
-            <CardActionArea>
-              <div className={styles.selectedPiecePaper}>
-                <EquipmentCard imageName={piece.icon} />
-                <BuiBanner label={requirementByPiece.count.toString()} width={'120%'} className={styles.countOnCard}/>
-              </div>
-            </CardActionArea>
-
-          </Card>;
+          return <LabeledEquipmentCard key={`${requirementByPiece.pieceId}-${index}`}
+            showTier showStockCount showNeedCount
+            equipById={equipmentsById}
+            requirement={requirementByPiece}
+            piecesState={piecesState}
+            onClick={() => handleOpenDialogForEditing(requirementByPiece, index)} />;
         })}
         <BuiButton color={'baButtonSecondary'} onClick={handleClickOpen} className={styles.addButton}>
           <div>{t('addButton')}</div>

@@ -6,7 +6,7 @@ import {Equipment} from 'model/Equipment';
 import {ReactNode, memo, MouseEvent, MouseEventHandler} from 'react';
 import {EquipmentsById} from '../PiecesCalculationCommonTypes';
 import {PieceState} from './inventory/PiecesInventory';
-import {IRequirementByEquipment} from 'stores/EquipmentsRequirementStore';
+import {IRequirementByEquipment, IRequirementByPiece} from 'stores/EquipmentsRequirementStore';
 
 // #region
 type Switches = Partial<{
@@ -19,7 +19,7 @@ type Switches = Partial<{
 type EquipIdSource = {
   equip?: Equipment,
   equipId?: string,
-  requirement?: IRequirementByEquipment,
+  requirement?: IRequirementByEquipment | IRequirementByPiece,
   pieceState?: PieceState,
 };
 type EquipmentSource = EquipIdSource & {equipById?: EquipmentsById};
@@ -39,9 +39,10 @@ type Props<T> = Switches & EquipIdSource & EquipmentSource & PieceStateSource & 
 });
 
 const resolveEquipmentId = (props: EquipIdSource) => {
-  return props.equipId || props.equip?.id ||
-    props.requirement?.targetEquipmentId ||
-    props.pieceState?.pieceId;
+  return props.equipId || props.equip?.id || props.pieceState?.pieceId ||
+    (props.requirement && 'pieceId' in props.requirement ?
+      props.requirement.pieceId :
+      props.requirement?.targetEquipmentId);
 };
 const resolveEquipment = (props: EquipmentSource) => {
   return props.equip ||
@@ -93,6 +94,9 @@ const LabeledEquipmentCard = <T extends unknown = never>({
   ...props
 }: Props<T>) => {
   const {equipById, requirement} = props;
+  const reqmByEquip = (requirement && 'pieceId' in requirement) ? undefined : requirement;
+  const reqmByPiece = (requirement && 'pieceId' in requirement) ? requirement : undefined;
+
   const imageName = resolveEquipment(props)?.icon || props.imageName;
   const bottomLeftText = showTier ?
     `T${resolveEquipment(props)?.tier ?? '?'}` :
@@ -101,11 +105,11 @@ const LabeledEquipmentCard = <T extends unknown = never>({
     `x${resolvePieceState(props)?.inStockCount ?? 0}` :
     props.bottomRightText;
   const tierChangeText = showTierChange &&
-    equipById && requirement && buildTierChange(equipById, requirement);
+    equipById && reqmByEquip && buildTierChange(equipById, reqmByEquip);
   const nicknameText = showNickname &&
-    requirement && buildNickname(requirement);
+    reqmByEquip && buildNickname(reqmByEquip);
   const needCountText = showNeedCount &&
-    `${resolvePieceState(props)?.needCount ?? 0}`;
+    `${reqmByPiece?.count ?? resolvePieceState(props)?.needCount ?? 0}`;
   const onClick = 'index' in props ?
     ((e: MouseEvent) => props.onClick?.(e, props.index) as void) :
     props.onClick;
