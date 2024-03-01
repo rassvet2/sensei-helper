@@ -1,5 +1,5 @@
 import styles from './LabeledEquipmentCard.module.scss';
-import {Card, CardActionArea} from '@mui/material';
+import {Card, CardActionArea, styled} from '@mui/material';
 import BuiBanner from 'components/bui/BuiBanner';
 import EquipmentCard from 'components/bui/card/EquipmentCard';
 import {Equipment} from 'model/Equipment';
@@ -117,9 +117,9 @@ const LabeledEquipmentCard = <T extends unknown = never>({
           bottomLeftText={bottomLeftText}
           bottomRightText={bottomRightText}
           isSelected={props.isSelected}/>}
-        {tierChangeText && <BuiBanner label={tierChangeText} width={'120%'} />}
-        {nicknameText && <BuiBanner label={nicknameText} width={'120%'} />}
-        {needCountText && <BuiBanner label={needCountText} width={'120%'} />}
+        {tierChangeText && <BuiBannerStyled label={tierChangeText} />}
+        {nicknameText && <BuiBannerTruncated label={nicknameText} />}
+        {needCountText && <BuiBannerStyled label={needCountText} />}
       </div>
       <div className={styles.badges}>{props.badge}</div>
     </CardActionArea>
@@ -128,3 +128,10 @@ const LabeledEquipmentCard = <T extends unknown = never>({
 
 const Memo = memo(LabeledEquipmentCard) as unknown as typeof LabeledEquipmentCard;
 export {Memo as LabeledEquipmentCard};
+
+const BuiBannerStyled = styled(BuiBanner)({
+  width: '120% !important',
+});
+const BuiBannerTruncated = styled(BuiBannerStyled)({
+  paddingInline: '0 !important',
+});
