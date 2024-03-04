@@ -18,6 +18,7 @@ import {useTranslation} from 'next-i18next';
 import PositiveIntegerOnlyInput from 'components/calculationInput/common/PositiveIntegerOnlyInput';
 import {EquipmentsList} from '../common/EquipmentsList';
 import {useEquipmentFilterChips} from '../equipments/EquipmentFilterChips';
+import {ChipForm} from '../common/ActionChips';
 
 interface IFormInputs {
     neededPieceCount: string
@@ -118,7 +119,7 @@ const PiecesSelectionDialog = ({
   const maxTier = useMemo(() => {
     return piecesByTier && Math.max(...Array.from(piecesByTier.keys()));
   }, [piecesByTier]);
-  const [,, filterFunc, filterChips] = useEquipmentFilterChips({
+  const [filterChipProps, filterFunc] = useEquipmentFilterChips({
     minTier: 2,
     maxTier: maxTier ?? 2,
   });
@@ -128,7 +129,7 @@ const PiecesSelectionDialog = ({
         .filter((equip) => equip.equipmentCompositionType == EquipmentCompositionType.Piece);
 
     if (filterFunc) {
-      const filtered = equipments.filter((equip) => !filterFunc || filterFunc(equip));
+      const filtered = equipments.filter((equip) => filterFunc(equip));
       return <EquipmentsList
         equipments={filtered}
         selectedEquipId={selectedPieceId}
@@ -161,7 +162,7 @@ const PiecesSelectionDialog = ({
       </Box>
     </DialogTitle>
     <DialogContent>
-      {filterChips}
+      <ChipForm {...filterChipProps} />
       {piecesById ? piecesList : <CircularProgress />}
     </DialogContent>
     <DialogActions>

@@ -43,6 +43,7 @@ import {PieceState} from './inventory/PiecesInventory';
 import {LabeledEquipmentCard} from './LabeledEquipmentCard';
 import {useEquipmentFilterChips} from './EquipmentFilterChips';
 import {EquipmentsList} from '../common/EquipmentsList';
+import {ChipForm} from '../common/ActionChips';
 
 
 export interface IEquipmentFormInputs {
@@ -331,18 +332,17 @@ const EquipmentsSelectionDialog = ({
     }
   };
 
-  const [,, filterFunc, filterChips] = useEquipmentFilterChips({
+  const [filterChipProps, filterFunc, filterEnabled] = useEquipmentFilterChips({
     minTier: 1,
     maxTier: overallMaxTier,
   });
   const equipmentsList = useMemo(() => {
-    const groupByTier = !filterFunc;
     const equipments = Array.from(equipmentsById.values())
         .filter((equip) => equip.equipmentCompositionType == EquipmentCompositionType.Composite)
         .filter((equip) => equip.tier < maxTierPerCategory[equip.category]);
 
-    if (filterFunc) {
-      const filtered = equipments.filter((equip) => !filterFunc || filterFunc(equip));
+    if (filterEnabled) {
+      const filtered = equipments.filter((equip) => filterFunc(equip));
       return <EquipmentsList
         equipments={filtered}
         selectedEquipId={baseEquipId}
@@ -358,15 +358,18 @@ const EquipmentsSelectionDialog = ({
           equipments={grouped}
           selectedEquipId={baseEquipId}
           onClick={onCurrentEquipmentChanged}/>
-        {groupByTier && <div>
+        <div>
           <BuiLinedText>T{overallMaxTier}</BuiLinedText>
           <Typography sx={{color: 'text.disabled'}} variant={'subtitle1'}>
             {t('addEquipmentDialog.cannotUpgradeFurther')}
           </Typography>
-        </div>}
+        </div>
       </>;
     }
-  }, [baseEquipId, equipmentsById, filterFunc, maxTierPerCategory, overallMaxTier, t]);
+  }, [
+    baseEquipId, equipmentsById, maxTierPerCategory, overallMaxTier, t,
+    filterEnabled, filterFunc,
+  ]);
 
   const generateStepContent = (stepNumber: number) => {
     const baseEquipment = equipmentsById.get(baseEquipId ?? '');
@@ -375,7 +378,7 @@ const EquipmentsSelectionDialog = ({
     switch (stepNumber) {
       case 0:
         return !equipmentsById ? <CircularProgress /> : <>
-          {filterChips}
+          <ChipForm {...filterChipProps} />
           {equipmentsList}
         </>;
       case 1:
