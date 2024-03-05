@@ -13,3 +13,11 @@
   margin-left: 1em;
   align-self: center;
 }
+
+@mixin chips-list() {
+  display: flex;
+  flex-flow: row wrap;
+  place-content: flex-start;
+  place-items: center;
+  gap: 0.5rem 0.2rem;
+}

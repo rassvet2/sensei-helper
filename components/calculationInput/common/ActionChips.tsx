@@ -1,5 +1,5 @@
 import styles from './ActionChips.module.scss';
-import {Chip, ChipProps, styled} from '@mui/material';
+import {Chip, ChipProps, Tooltip, Typography, styled} from '@mui/material';
 import {Sort} from '@mui/icons-material';
 import React, {forwardRef} from 'react';
 import {
@@ -10,19 +10,24 @@ import {
 import {useTranslation} from 'next-i18next';
 import {equipmentCategories} from '../equipments/EquipmentFilterChips';
 
+// #region type definitions
 export type OptionValue = string | number;
 export type GroupType = 'check' | 'radio' | 'sort';
 export type OptionSpec<TValue extends OptionValue> = Readonly<{
   value: TValue,
-  label: React.ReactNode
+  label: React.ReactNode,
+  hide?: boolean,
+  tooltip?: React.ReactNode,
 }>;
 export type ChipGroup<
   TType extends GroupType = GroupType,
   TValue extends OptionValue = OptionValue,
-  TUncheckable extends boolean | undefined = boolean | undefined,
+  TUncheckable extends boolean = boolean,
 > = Readonly<{
   type: TType,
   uncheckable?: TUncheckable,
+  title?: React.ReactNode,
+  hide?: boolean,
   options: readonly OptionSpec<TValue>[],
 }>;
 export type ChipGroupValue<TGroup extends ChipGroup<any>> =
@@ -35,41 +40,51 @@ export type ChipFormSpec = Readonly<Record<string, ChipGroup>>;
 export type ChipFormValues<TSpec extends ChipFormSpec> = {
   [key in keyof TSpec]: ChipGroupValue<TSpec[key]>
 };
+// #endregion
 
 export const ChipForm = <Spec extends ChipFormSpec>({
   spec,
   control,
+  variant = 'default',
   ...props
 }: React.FormHTMLAttributes<HTMLFormElement> & {
   spec: Spec,
   control: Control<ChipFormValues<Spec>>,
+  variant?: 'default' | 'nowrap' | 'dialog' | 'collapse',
 }) => {
-  return <form {...props} className={`${props.className ?? ''} ${styles.container}`}>
-    {Object.entries(spec).map(([name, {type, options, ...others}]) => {
-      const uncheckable = 'uncheckable' in others && others.uncheckable;
-      switch (type) {
-        case 'check': return <React.Fragment key={name}>
-          {options.map(({value, label}) => (
-            <CheckChip key={value} control={control}
-              name={name as any} value={value as any} label={label} />
-          ))}
-          <div className={styles.divider} />
-        </React.Fragment>;
-        case 'radio': return <React.Fragment key={name}>
-          {options.map(({value, label}) => (
-            <RadioChip key={value} control={control} uncheckable={uncheckable}
-              name={name as any} value={value as any} label={label} />
-          ))}
-          <div className={styles.divider} />
-        </React.Fragment>;
-        case 'sort': return <React.Fragment key={name}>
-          {options.map(({value, label}) => (
-            <SortChip key={value} control={control} uncheckable={uncheckable}
-              name={name as any} value={value as any} label={label} />
-          ))}
-          <div className={styles.divider} />
-        </React.Fragment>;
-      }
+  const hideDetail = variant === 'default' || variant === 'nowrap';
+  const showTitle = variant === 'dialog';
+  return <form {...props}
+    className={joinClassNames(
+        props.className,
+        ...({
+          default: [styles.inline], nowrap: [styles.inline, styles.nowrap],
+          dialog: [styles.block], collapse: [styles.block],
+        }[variant])
+    )}>
+    {Object.entries(spec).map(([name, {type, options, ...group}]) => {
+      const ChipComponent = {
+        check: CheckChip,
+        radio: RadioChip,
+        sort: SortChip,
+      }[type] as ControllerComponent<any>;
+      return <React.Fragment key={name}>
+        {showTitle && group.title && <div className={styles.title}>
+          <Typography variant='h6'>{group.title}</Typography>
+        </div>}
+        <div role='group' className={styles.group}>
+          {options.map(({value, label, ...chip}) => {
+            const hideChip = hideDetail && (group.hide || chip.hide);
+            const content = <ChipComponent key={value} {...{
+              name, value, label, control,
+              ...(group.uncheckable && {uncheckable: true}),
+              hideIfUnchecked: hideChip,
+            }} />;
+
+            return <Tooltip key={value} title={chip.tooltip} arrow>{content}</Tooltip>;
+          })}
+        </div>
+      </React.Fragment>;
     })}
   </form>;
 };
@@ -93,14 +108,11 @@ type EquipmentCategory = typeof equipmentCategories[number];
 export const useEquipmentCategoryGroup =
   <
     TType extends GroupType,
-    TUncheckable extends boolean | undefined = undefined
+    TUncheckable extends boolean = false
   >({
-    type,
-    uncheckable,
     categories = equipmentCategories,
-  }: {
-    type: TType,
-    uncheckable?: TUncheckable,
+    ...spec
+  }: Omit<ChipGroup<TType, EquipmentCategory, TUncheckable>, 'options'> & {
     categories?: readonly EquipmentCategory[],
   }): ChipGroup<TType, EquipmentCategory, TUncheckable> => {
     const {t} = useTranslation();
@@ -108,7 +120,7 @@ export const useEquipmentCategoryGroup =
       value,
       label: t(`equipmentCategory.${value}`),
     }));
-    return {type, uncheckable, options};
+    return {...spec, options};
   };
 
 const range = (start: number, endInclusive: number) => {
@@ -118,15 +130,12 @@ const range = (start: number, endInclusive: number) => {
 export const useEquipmentTierGroup =
   <
     TType extends GroupType,
-    TUncheckable extends boolean | undefined = undefined
+    TUncheckable extends boolean = false
   >({
-    type,
-    uncheckable,
     minTier = 1,
     maxTier,
-  }: {
-    type: TType,
-    uncheckable?: TUncheckable,
+    ...spec
+  }: Omit<ChipGroup<TType, number, TUncheckable>, 'options'> & {
     minTier?: number,
     maxTier: number,
   }): ChipGroup<TType, number, TUncheckable> => {
@@ -134,7 +143,7 @@ export const useEquipmentTierGroup =
       value: tier,
       label: `T${tier}`,
     }));
-    return {type, uncheckable, options};
+    return {...spec, options};
   };
 
 export const ChipsDemo = () => {
@@ -195,39 +204,87 @@ export const ChipsDemo = () => {
   return <ChipForm {...chipFormProps} />;
 };
 
-// #region components
+// #region chip components
+const joinClassNames = (
+    ...classNames: (string | boolean | null | undefined)[]
+) => (
+  classNames
+      .filter((it) => typeof it === 'string' && it.length > 0)
+      .join(' ')
+);
+const combineRefs = <T extends HTMLElement>(
+  ...refs: readonly (React.Ref<T> | React.MutableRefObject<T> | null | undefined)[]
+): React.RefCallback<T> => {
+  return (element: T | null) => {
+    for (const ref of refs) {
+      if (!ref) continue;
+      if (typeof ref === 'function') {
+        ref(element);
+      } else {
+        (ref as any).current = element;
+      }
+    }
+  };
+};
+
 export const ToggleChip = styled(forwardRef(function ToggleChip(
     props: {
       label?: React.ReactNode,
       checked?: boolean,
-      onClick?: React.MouseEventHandler<HTMLInputElement>,
+      disabled?: boolean,
+      hideIfUnchecked?: boolean,
+      chipRef?: React.ForwardedRef<HTMLLabelElement>,
+      chipProps?: ChipProps<'label'>,
+      inputRef?: React.ForwardedRef<HTMLInputElement>,
+      inputProps?: React.InputHTMLAttributes<HTMLInputElement>,
     } & Omit<ChipProps<'label'>,
-        'ref' | 'clickable' | 'component' | 'label' | 'onClick' | 'variant' | 'onChange'>
-      & Omit<React.InputHTMLAttributes<HTMLInputElement>,
-        'checked' | 'defaultChecked'>,
+        | 'ref' | 'role' | 'component' | 'clickable' | 'disabled' | 'variant' | 'label'
+        | 'type' | 'name' | 'value' | 'onClick' | 'onChange' | 'onBlur'>
+      & Pick<React.InputHTMLAttributes<HTMLInputElement>,
+        | 'type' | 'name' | 'value' | 'onClick' | 'onChange' | 'onBlur'>,
     ref?: React.ForwardedRef<HTMLInputElement>,
 ) {
   const {
-    label, checked, onClick,
+    label, checked, disabled, hideIfUnchecked = false,
+    chipProps, chipRef, inputProps, inputRef,
 
-    /* ChipProps (omit clickable, component, label, onClick and variant) */
-    avatar, className, color = 'primary', deleteIcon, disabled, icon,
-    onDelete, onKeyDown, onKeyUp, size = 'small', tabIndex, skipFocusWhenDisabled,
+    /* input props */
+    type = 'radio', name, value, onClick, onChange, onBlur,
 
-    ...inputProps
+    ...others
   } = props;
 
-  const chipProps: ChipProps<'label'> = {
-    avatar, className, color, deleteIcon, disabled, icon,
-    onDelete, onKeyDown, onKeyUp, size, tabIndex, skipFocusWhenDisabled,
+  if (hideIfUnchecked && !checked) return null;
+
+  const chip: ChipProps<'label'> = {
+    color: 'primary',
+    size: 'small',
+    ...others,
+    ...chipProps,
+  };
+  const input: React.InputHTMLAttributes<HTMLInputElement> = {
+    type, name, value, onClick, onChange, onBlur,
+    ...inputProps,
   };
 
-  return <Chip {...chipProps}
-    component='label' role={undefined} clickable
+  if (process.env.NODE_ENV !== 'production') {
+    /* eslint-disable no-unused-vars */
+    const {
+      avatar, className, color, deleteIcon, icon,
+      onDelete, onKeyDown, onKeyUp, size, tabIndex, skipFocusWhenDisabled,
+      ...rest
+    } = others;
+    /* eslint-enable no-unused-vars */
+    // if (Object.keys(rest).length) console.warn('unknown props: ', rest);
+  }
+
+  return <Chip {...chip} ref={combineRefs(chipRef, chipProps?.ref)}
+    component='label' role={undefined}
+    clickable disabled={disabled}
     variant={checked ? 'filled' : 'outlined'}
     label={<>
-      <input ref={ref} type='radio' {...inputProps}
-        checked={checked} onClick={onClick} />
+      <input {...input} ref={combineRefs(ref, inputRef)}
+        checked={checked} disabled={disabled} />
       {label}
     </>} />;
 }))(({theme, color, checked}) => ({
@@ -245,13 +302,21 @@ export const ToggleChip = styled(forwardRef(function ToggleChip(
   },
 }));
 
-export const CheckChip = <TValues extends FieldValues, TName extends FieldPath<TValues>>(
-  props: {
-    onClick?: React.MouseEventHandler<HTMLInputElement>,
-  } & UseControllerProps<TValues, TName>
-    & Omit<React.ComponentProps<typeof ToggleChip>, 'type' | 'name'>,
-) => {
+type ControllerComponent<TProps> = <
+  TValues extends FieldValues = FieldValues,
+  TName extends FieldPath<TValues> = FieldPath<TValues>,
+>(props: TProps & UseControllerProps<TValues, TName>) => React.ReactElement;
+
+type CheckChipProps = {
+  onClick?: React.MouseEventHandler<HTMLInputElement>,
+  ref?: React.ForwardedRef<HTMLLabelElement>,
+} & Omit<React.ComponentPropsWithoutRef<typeof ToggleChip>, 'type' | 'name'>;
+export const CheckChip: ControllerComponent<CheckChipProps> = forwardRef(function CheckChip(
+    props,
+    ref,
+) {
   const {
+    chipRef,
     // eslint-disable-next-line no-unused-vars
     name, rules, shouldUnregister, defaultValue, control,
     ...others
@@ -269,19 +334,22 @@ export const CheckChip = <TValues extends FieldValues, TName extends FieldPath<T
     }
   };
 
-  return <ToggleChip type='checkbox' {...others} {...field}
+  return <ToggleChip chipRef={combineRefs(ref, chipRef)}
+    type='checkbox' {...others} {...field}
     checked={checked} onChange={handleChange} />;
-};
+}) as ControllerComponent<CheckChipProps>;
 
-export const RadioChip = <TValues extends FieldValues, TName extends FieldPath<TValues>>(
-  props: {
-    onClick?: React.MouseEventHandler<HTMLInputElement>,
-    uncheckable?: boolean,
-  } & UseControllerProps<TValues, TName>
-    & Omit<React.ComponentProps<typeof ToggleChip>, 'type' | 'name' | 'onClick'>,
-) => {
+type RadioChipProps = {
+  onClick?: React.MouseEventHandler<HTMLInputElement>,
+  uncheckable?: boolean,
+  ref?: React.ForwardedRef<HTMLLabelElement>,
+} & Omit<React.ComponentPropsWithoutRef<typeof ToggleChip>, 'type' | 'name' | 'onClick'>;
+export const RadioChip: ControllerComponent<RadioChipProps> = React.forwardRef(function RadioChip(
+    props,
+    ref,
+) {
   const {
-    onClick, uncheckable,
+    chipRef, onClick, uncheckable,
     // eslint-disable-next-line no-unused-vars
     name, rules, shouldUnregister, defaultValue, control,
     ...others
@@ -301,22 +369,26 @@ export const RadioChip = <TValues extends FieldValues, TName extends FieldPath<T
     }
   };
 
-  return <ToggleChip type='radio' {...others} {...field}
+  return <ToggleChip chipRef={combineRefs(ref, chipRef)}
+    type='radio' {...others} {...field}
     checked={checked} onClick={handleClick} onChange={handleChange} />;
-};
+}) as ControllerComponent<RadioChipProps>;
 
 const SortDscIcon = Sort;
 const SortAscIcon = styled(Sort)({transform: 'scaleY(-1)'});
 export type SortMode<T = unknown> = {key: T, order: 'asc' | 'dsc'};
-export const SortChip = <TValues extends FieldValues, TName extends FieldPath<TValues>>(
-  props: {
-    onClick?: React.MouseEventHandler<HTMLInputElement>,
-    uncheckable?: boolean,
-  } & UseControllerProps<TValues, TName>
-    & Omit<React.ComponentProps<typeof ToggleChip>, 'type' | 'name' | 'onClick'>,
-) => {
+
+type SortChipProps = {
+  onClick?: React.MouseEventHandler<HTMLInputElement>,
+  uncheckable?: boolean,
+  ref?: React.ForwardedRef<HTMLLabelElement>,
+} & Omit<React.ComponentPropsWithoutRef<typeof ToggleChip>, 'type' | 'name' | 'onClick'>;
+export const SortChip: ControllerComponent<SortChipProps> = React.forwardRef(function SortChip(
+    props,
+    ref,
+) {
   const {
-    onClick, uncheckable,
+    chipRef, onClick, uncheckable,
     // eslint-disable-next-line no-unused-vars
     name, rules, shouldUnregister, defaultValue, control,
     ...others
@@ -342,8 +414,9 @@ export const SortChip = <TValues extends FieldValues, TName extends FieldPath<TV
     }
   };
 
-  return <ToggleChip type='radio' {...others} {...field}
+  return <ToggleChip chipRef={combineRefs(ref, chipRef)}
+    type='radio' {...others} {...field}
     icon={order ? {asc: <SortAscIcon />, dsc: <SortDscIcon />}[order] : undefined}
     checked={!!order} onClick={handleClick} onChange={handleChange} />;
-};
+}) as ControllerComponent<SortChipProps>;
 // #endregion

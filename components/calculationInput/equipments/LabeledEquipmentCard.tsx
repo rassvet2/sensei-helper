@@ -7,6 +7,7 @@ import {ReactNode, memo, MouseEvent, MouseEventHandler} from 'react';
 import {EquipmentsById} from '../PiecesCalculationCommonTypes';
 import {PieceState} from './inventory/PiecesInventory';
 import {IRequirementByEquipment} from 'stores/EquipmentsRequirementStore';
+import {Done} from '@mui/icons-material';
 
 // #region
 type Switches = Partial<{
@@ -15,6 +16,8 @@ type Switches = Partial<{
   showTierChange: boolean,
   showNickname: boolean,
   showNeedCount: boolean,
+  showShortageCount: boolean,
+  showCheckIfEnough: boolean,
 }>;
 type EquipIdSource = {
   equip?: Equipment,
@@ -56,13 +59,14 @@ const buildTierChange = (equipById: EquipmentsById, requirement: IRequirementByE
   const targetTier = equipById.get(requirement.targetEquipmentId)?.tier;
   return `T${baseTier ?? '?'}→${targetTier ?? '?'}`;
 };
-// const buildNickname = ({nickname, count}: IRequirementByEquipment) => {
-//   return !nickname ? `${count}` :
-//     count == 1 ? `${nickname}` :
-//     `[${nickname}]${count}`;
-// };
 const buildNickname = ({nickname, count}: IRequirementByEquipment) => {
-  return !nickname ? `${count}` : `[${nickname}]${count}`;
+  return !nickname ? `${count}` :
+    count == 1 ? `${nickname}` :
+    `[${nickname}]${count}`;
+};
+const buildShortage = (state: PieceState) => {
+  const margin = state.inStockCount - state.needCount;
+  return state.needCount == 0 ? '-' : margin > 0 ? `+${margin}` : `${margin}`;
 };
 // #endregion
 
@@ -89,23 +93,29 @@ const buildNickname = ({nickname, count}: IRequirementByEquipment) => {
  */
 const LabeledEquipmentCard = <T extends unknown = never>({
   showTier, showStockCount, showNeedCount,
-  showTierChange, showNickname,
+  showTierChange, showNickname, showShortageCount,
+  showCheckIfEnough,
   ...props
 }: Props<T>) => {
   const {equipById, requirement} = props;
-  const imageName = resolveEquipment(props)?.icon || props.imageName;
+  const equipment = resolveEquipment(props);
+  const state = resolvePieceState(props);
+
+  const imageName = equipment?.icon || props.imageName;
   const bottomLeftText = showTier ?
-    `T${resolveEquipment(props)?.tier ?? '?'}` :
+    `T${equipment?.tier ?? '?'}` :
     props.bottomLeftText;
   const bottomRightText = showStockCount ?
-    `x${resolvePieceState(props)?.inStockCount ?? 0}` :
+    `x${state?.inStockCount ?? 0}` :
     props.bottomRightText;
   const tierChangeText = showTierChange &&
     equipById && requirement && buildTierChange(equipById, requirement);
   const nicknameText = showNickname &&
     requirement && buildNickname(requirement);
-  const needCountText = showNeedCount &&
-    `${resolvePieceState(props)?.needCount ?? 0}`;
+  const needCountText = (showNeedCount && `${state?.needCount || '-'}`) ||
+    (showShortageCount && ((state && buildShortage(state)) || '-'));
+  const showCheck = showCheckIfEnough &&
+    state && state.needCount > 0 && state.needCount <= state.inStockCount;
   const onClick = 'index' in props ?
     ((e: MouseEvent) => props.onClick?.(e, props.index) as void) :
     props.onClick;
@@ -121,7 +131,10 @@ const LabeledEquipmentCard = <T extends unknown = never>({
         {nicknameText && <BuiBanner label={nicknameText} width={'120%'} />}
         {needCountText && <BuiBanner label={needCountText} width={'120%'} />}
       </div>
-      <div className={styles.badges}>{props.badge}</div>
+      <div className={styles.badges}>
+        {showCheck && <Done />}
+        {props.badge}
+      </div>
     </CardActionArea>
   </Card>;
 };
