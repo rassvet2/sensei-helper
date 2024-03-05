@@ -81,10 +81,13 @@ const stringAscending: Comparator<string> = (a, b) => a.localeCompare(b);
 const stringDescending: Comparator<string> = (a, b) => b.localeCompare(a);
 const numericStringAscending = buildComparator(parseFloat, numberAscending);
 const numericStringDescending = buildComparator(parseFloat, numberDescending);
+const booleanAscending = buildComparator(Number, numberAscending);
+const booleanDescending = buildComparator(Number, numberDescending);
 export const Comparators = {
   numberAscending, numberDescending,
   stringAscending, stringDescending,
   numericStringAscending, numericStringDescending,
+  booleanAscending, booleanDescending,
 } as const;
 
 export const buildArrayIndexComparator = <Item>(
@@ -101,4 +104,11 @@ export const buildArrayIndexComparator = <Item>(
       },
       comparator,
   );
+};
+
+export const reverseComparator = <Item>(
+  comparatorFn: Comparator<Item>,
+  reverse: boolean = true,
+): Comparator<Item> => {
+  return !reverse ? comparatorFn : ((a, b) => comparatorFn(b, a));
 };

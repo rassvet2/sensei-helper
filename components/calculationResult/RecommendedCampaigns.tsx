@@ -1,6 +1,6 @@
 import styles from './RecommendedCampaigns.module.scss';
 import {isString} from 'common/checkVariableTypeUtil';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   CampaignsById,
   DropPieceIdsWithCount,
@@ -19,9 +19,11 @@ import InefficientRequirementWarning, {
   OnCloseInefficacyDialog,
 } from 'components/calculationInput/common/InefficientRequirementWarning';
 import {getRewardsByRegion} from 'common/gameDataHandlerUtil';
-import {equipmentCategories} from 'components/calculationInput/equipments/EquipmentFilterChips';
-import {useFilterChips} from 'components/calculationInput/common/FilterChips';
 import {PieceState} from 'components/calculationInput/equipments/inventory/PiecesInventory';
+import {
+  ChipForm, useChipForm, useEquipmentCategoryGroup,
+} from 'components/calculationInput/common/ActionChips';
+import {useWatch} from 'react-hook-form';
 
 
 const RecommendedCampaigns = ({
@@ -62,24 +64,26 @@ const RecommendedCampaigns = ({
     onCloseInEfficacyDialog(isExcludeInefficientStagesDirty);
   };
 
-  const filterSpec = useMemo(() => {
-    const categorySpec = equipmentCategories
-        .map((key) => ({key, label: t(`equipmentCategory.${key}`)}));
-    return {reward: categorySpec};
-  }, [t]);
-  const [selection,, filterChips] = useFilterChips(filterSpec);
-  const filterFunc = useCallback(([campaignId]: [string, number | undefined]) => {
+  const [chipFormProps, {control}] = useChipForm({
+    reward: useEquipmentCategoryGroup({type: 'radio', uncheckable: true}),
+  }, {
+    defaultValues: {
+      reward: null,
+    },
+  });
+  const [rewardCategory] = useWatch({control, name: ['reward']});
+  const filterFunc = ([campaignId]: [string, number | undefined]) => {
     const isNully = (x: unknown) => x === null || x === undefined;
     const campaign = campaignsById.get(campaignId);
     const rewards = campaign && getRewardsByRegion(campaign, store.gameInfoStore.gameServer);
-    return isNully(selection?.reward) ||
-          rewards?.some(({id}) => equipmentsById.get(id)?.category === selection?.reward);
-  }, [campaignsById, equipmentsById, selection, store.gameInfoStore.gameServer]);
+    return isNully(rewardCategory) ||
+          rewards?.some(({id}) => equipmentsById.get(id)?.category === rewardCategory);
+  };
 
   return <React.Fragment>
     <InefficientRequirementWarning isOpened={isInefficientRequirementDialogOpened}
       onCloseDialog={handleCloseInefficientRequirementDialog}/>
-    {filterChips}
+    <ChipForm {...chipFormProps} />
     {
       Object.entries(solution)
           .sort(([keyA, valueA], [keyB, valueB]) =>

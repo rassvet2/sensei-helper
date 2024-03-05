@@ -1,9 +1,29 @@
 @use 'scss/layout.module';
 @use 'components/calculationInput/common/common-calculation-input-layout';
+
 .piecesList{
   @include common-calculation-input-layout.items-list;
 }
 
 .editButton{
   @include common-calculation-input-layout.list-end-button-position;
+}
+
+.filterBar {
+  display: flex;
+  width: 100%;
+  flex-flow: row nowrap;
+  place-content: flex-start;
+  place-items: flex-start;
+  gap: 1rem;
+}
+
+.chips {
+  flex-grow: 1;
+  overflow-x: auto;
+}
+
+.chipButtons {
+  @include common-calculation-input-layout.chips-list();
+  flex-wrap: nowrap;
 }
