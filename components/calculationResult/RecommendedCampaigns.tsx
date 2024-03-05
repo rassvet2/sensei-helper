@@ -19,6 +19,7 @@ import InefficientRequirementWarning, {
   OnCloseInefficacyDialog,
 } from 'components/calculationInput/common/InefficientRequirementWarning';
 import {getRewardsByRegion} from 'common/gameDataHandlerUtil';
+import {PieceState} from 'components/calculationInput/equipments/inventory/PiecesInventory';
 import {equipmentCategories} from 'components/calculationInput/equipments/EquipmentFilterChips';
 import {useFilterChips} from 'components/calculationInput/common/FilterChips';
 
@@ -30,6 +31,7 @@ const RecommendedCampaigns = ({
   equipmentsRequirementStore,
   normalMissionItemDropRatio,
   onCloseInEfficacyDialog,
+  piecesState,
 }: {
     solution: Solution<string>,
     campaignsById: CampaignsById,
@@ -37,6 +39,7 @@ const RecommendedCampaigns = ({
     equipmentsRequirementStore: IEquipmentsRequirementStore,
     normalMissionItemDropRatio: number,
     onCloseInEfficacyDialog: OnCloseInefficacyDialog,
+    piecesState: Map<string, PieceState>,
 }) => {
   const {t} = useTranslation('home');
   const store = useStore();
@@ -112,7 +115,7 @@ const RecommendedCampaigns = ({
             return <div key={key} className={styles.selectedPiecesCard}>
               <CampaignDropItemsList
                 campaignInfo={campaignInfo} stageExplanationLabel={t('stageSweepingTimes', {sweepingTimes})}
-                allDrops={allDrops} equipmentsById={equipmentsById} />
+                allDrops={allDrops} equipmentsById={equipmentsById} piecesState={piecesState} />
             </div>;
           })
     }
