@@ -68,6 +68,36 @@
     "Necklace": "Necklace"
   },
   "filterResultEmpty": "Could not find any equipment matching the filter.",
+  "piecesFilter": {
+    "detail": "Detail",
+    "reset": "Reset",
+    "cancel": "Cencel",
+    "close": "Confirm",
+    "filter": {
+      "byTier": "Filter by Tier",
+      "byCategory": "Filter by Category",
+      "byStockStatus": "Filter by Stock Status",
+      "inStock": "In Stock",
+      "required": "Required",
+      "insufficient": "Insufficient",
+      "all": "All"
+    },
+    "sortBy": {
+      "title": "Sort by",
+      "default": "Default",
+      "stockStatus": "Stock Status",
+      "tier": "Tier",
+      "category": "Category",
+      "required": "Required Qty",
+      "shortage": "Insufficient Qty",
+      "stock": "Stock Count"
+    },
+    "amountLabel": {
+      "title": "Label Display",
+      "required": "Required Qty",
+      "shortage": "Insufficient Qty"
+    }
+  },
   "thinsToNote": {
     "title": "Things to note",
     "pointThisIsEstimation": "Recommended sweeping times is an estimation and your mileage may vary.",

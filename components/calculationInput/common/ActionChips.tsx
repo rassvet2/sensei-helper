@@ -3,7 +3,8 @@ import {Chip, ChipProps, Tooltip, Typography, styled} from '@mui/material';
 import {Sort} from '@mui/icons-material';
 import {
   ChangeEventHandler, ComponentPropsWithoutRef, FormHTMLAttributes,
-  ForwardedRef, Fragment, InputHTMLAttributes, MouseEventHandler, MutableRefObject,
+  ForwardedRef, Fragment, InputHTMLAttributes, KeyboardEventHandler,
+  MouseEventHandler, MutableRefObject,
   ReactElement, ReactNode, Ref, RefCallback, forwardRef,
 } from 'react';
 import {
@@ -230,12 +231,13 @@ export const ToggleChip = styled(forwardRef(function ToggleChip(
     component='label' role={undefined}
     clickable disabled={disabled}
     variant={checked ? 'filled' : 'outlined'}
+    tabIndex={-1}
     label={<>
       <input {...input} ref={combineRefs(ref, inputRef)}
         checked={checked} disabled={disabled} />
       {label}
     </>} />;
-}))(({theme, color, checked}) => ({
+}))(({theme, color = 'primary', checked}) => ({
   transition: theme.transitions.create([
     'box-shadow', 'color', 'background-color', 'border-color',
   ]),
@@ -246,7 +248,11 @@ export const ToggleChip = styled(forwardRef(function ToggleChip(
         theme.palette[color].main,
   }),
   ['& input']: {
-    display: 'none',
+    appearance: 'none',
+    position: 'absolute',
+  },
+  ['&:has(input:focus-visible)']: {
+    outline: 'solid black',
   },
 }));
 
@@ -342,7 +348,7 @@ export const SortChip = forwardRef(function SortChip(
     ref,
 ) {
   const {
-    chipRef, onClick, uncheckable,
+    chipRef, onClick, onKeyUp, uncheckable,
     // eslint-disable-next-line no-unused-vars
     name, rules, shouldUnregister, defaultValue, control,
     ...others
@@ -369,9 +375,15 @@ export const SortChip = forwardRef(function SortChip(
     }
   };
 
+  const handleKeyUp: KeyboardEventHandler<HTMLLabelElement> = (e) => {
+    onKeyUp?.(e);
+    if (e.defaultPrevented) return;
+    if (e.key === ' ' || e.key === 'Enter') e.currentTarget.click();
+  };
+
   return <ToggleChip chipRef={combineRefs(ref, chipRef)}
     type='radio' {...others} {...field}
     icon={order ? {asc: <SortAscIcon />, dsc: <SortDscIcon />}[order] : undefined}
-    checked={!!order} onClick={handleClick} onChange={handleChange} />;
+    checked={!!order} onClick={handleClick} onChange={handleChange} onKeyUp={handleKeyUp} />;
 }) as ControllerComponent<SortChipProps, SortMode>;
 // #endregion

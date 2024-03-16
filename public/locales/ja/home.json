@@ -68,6 +68,36 @@
     "Necklace": "ネックレス"
   },
   "filterResultEmpty": "条件に合う装備が見つかりません。",
+  "piecesFilter": {
+    "detail": "詳細",
+    "reset": "リセット",
+    "cancel": "キャンセル",
+    "close": "確認",
+    "filter": {
+      "byTier": "Tierでフィルタ",
+      "byCategory": "カテゴリでフィルタ",
+      "byStockStatus": "在庫状況でフィルタ",
+      "inStock": "在庫有り",
+      "required": "必要",
+      "insufficient": "不足",
+      "all": "すべて"
+    },
+    "sortBy": {
+      "title": "並べ替え",
+      "default": "デフォルト",
+      "stockStatus": "在庫状況",
+      "tier": "Tier",
+      "category": "カテゴリ",
+      "required": "必要量",
+      "shortage": "不足量",
+      "stock": "在庫数"
+    },
+    "amountLabel": {
+      "title": "ラベルの表示",
+      "required": "必要量",
+      "shortage": "不足量"
+    }
+  },
   "thinsToNote": {
     "title": "注記",
     "pointThisIsEstimation": "推奨掃討回数は予測であり、実際の報酬と大きく異なる場合もあります。",
