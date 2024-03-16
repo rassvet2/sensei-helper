@@ -46,7 +46,7 @@ const AllPotentialStages = ({
   };
 
   return <Box sx={{mt: 3}} className={styles.allStages}>
-    <ChipForm {...chipFormProps} />
+    <Box marginBottom='1rem'><ChipForm {...chipFormProps} /></Box>
     {
       allPotentialCampaigns.filter(filterFunc).map((campaign) => {
         const allDrops = campaign.potentialTargetRewards.map(({id, probability}) => ({id, dropProb: probability}));

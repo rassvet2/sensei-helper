@@ -1,10 +1,9 @@
 import styles from './PiecesInventory.module.scss';
 import {
-  Box, Button, Chip, Collapse,
-  Dialog, DialogActions, DialogContent, DialogTitle, Divider,
-  useMediaQuery, useTheme,
+  Box, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle,
+  Popover, PopoverProps, useMediaQuery, useTheme,
 } from '@mui/material';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {IPieceInventory} from 'stores/EquipmentsRequirementStore';
 import {EquipmentsById} from 'components/calculationInput/PiecesCalculationCommonTypes';
 import InventoryUpdateDialog, {
@@ -16,7 +15,7 @@ import {observer} from 'mobx-react-lite';
 import {useTranslation} from 'next-i18next';
 import {LabeledEquipmentCard} from '../LabeledEquipmentCard';
 import {
-  ChipForm, ToggleChip, useChipForm, useEquipmentCategoryGroup, useEquipmentTierGroup,
+  ChipForm, useChipForm, useEquipmentCategoryGroup, useEquipmentTierGroup,
 } from 'components/calculationInput/common/ActionChips';
 import {useWatch} from 'react-hook-form';
 import {Equipment, EquipmentCompositionType} from 'model/Equipment';
@@ -168,14 +167,19 @@ const PiecesInventory = (
   const isDialogMode = useMediaQuery(theme.breakpoints.down('sm'));
   const [isFilterDetailOpened, setFilterDetailOpened] = useState(false);
   const [dialogFormProps, dialogFormControls] = useChipForm(chipFormProps.spec, {defaultValues});
+  const filterPopoverAnchor = useRef<PopoverProps['anchorEl']>(null);
   const callbacks = {
-    handleDetailChipClicked: () => {
+    handleOpenDetail: (e: React.MouseEvent<HTMLInputElement>) => {
+      setFilterDetailOpened(true);
       if (isDialogMode) {
         dialogFormControls.reset(formControls.getValues(), {keepDefaultValues: true});
-        setFilterDetailOpened(true);
       } else {
-        setFilterDetailOpened((it) => !it);
+        const rect = e.currentTarget?.getBoundingClientRect();
+        filterPopoverAnchor.current = {getBoundingClientRect: () => rect, nodeType: 1} as any;
       }
+    },
+    handlePopoverClose: () => {
+      setFilterDetailOpened(false);
     },
     handleResetFilter: () => {
       formControls.reset();
@@ -192,17 +196,16 @@ const PiecesInventory = (
     },
   };
 
-  const filterChips = <Box width='100%' marginBottom='1rem'>
-    <Box className={styles.filterBar}>
-      <ChipForm {...chipFormProps}
-        className={styles.chips}
-        variant={isDialogMode ? 'default' : 'nowrap'} />
-      <Box className={styles.chipButtons}>
-        <ToggleChip color='primary' size='small' label='詳細'
-          onClick={callbacks.handleDetailChipClicked} checked={isFilterDetailOpened} />
-        <Chip color='error' size='small' variant='outlined' label='リセット'
-          onClick={callbacks.handleResetFilter} />
-      </Box>
+  const filterChips = <>
+    <Box width='100%' marginBottom='1rem'>
+      <ChipForm {...chipFormProps} variant='default'>
+        <Box role='group' className={styles.additionalChips}>
+          <Chip color='primary' size='small' variant='outlined' label='詳細'
+            onClick={callbacks.handleOpenDetail} />
+          <Chip color='error' size='small' variant='outlined' label='リセット'
+            onClick={callbacks.handleResetFilter} />
+        </Box>
+      </ChipForm>
     </Box>
     {isDialogMode ? <Dialog open={isFilterDetailOpened}>
       <DialogTitle>
@@ -216,14 +219,14 @@ const PiecesInventory = (
         <Button onClick={callbacks.handleDialogCancel}>キャンセル</Button>
         <Button onClick={callbacks.handleDialogClose}>Ok</Button>
       </DialogActions>
-    </Dialog> : <Collapse in={isFilterDetailOpened}
-      className={styles.chips}
-      unmountOnExit>
-      <Divider sx={{marginBlock: '0.5rem'}} />
-      <ChipForm {...chipFormProps} variant='collapse' />
-      <Divider sx={{marginBlock: '0.5rem'}} />
-    </Collapse>}
-  </Box>;
+    </Dialog> : <Popover open={isFilterDetailOpened} onClose={callbacks.handlePopoverClose}
+      anchorOrigin={{vertical: 'bottom', horizontal: 'center'}}
+      transformOrigin={{vertical: -16, horizontal: 'center'}}
+      anchorEl={filterPopoverAnchor.current}
+      disableScrollLock>
+      <ChipForm {...chipFormProps} className={styles.filterPopover} variant='collapse' />
+    </Popover>}
+  </>;
 
   return <>
     {
