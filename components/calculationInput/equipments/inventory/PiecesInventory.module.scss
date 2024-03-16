@@ -9,21 +9,12 @@
   @include common-calculation-input-layout.list-end-button-position;
 }
 
-.filterBar {
-  display: flex;
-  width: 100%;
-  flex-flow: row nowrap;
-  place-content: flex-start;
-  place-items: flex-start;
-  gap: 1rem;
+.filterPopover {
+  padding: 1rem;
+  // max-width: 40rem;
 }
 
-.chips {
-  flex-grow: 1;
-  overflow-x: auto;
-}
-
-.chipButtons {
+.additionalChips {
   @include common-calculation-input-layout.chips-list();
-  flex-wrap: nowrap;
+  place-self: flex-end;
 }

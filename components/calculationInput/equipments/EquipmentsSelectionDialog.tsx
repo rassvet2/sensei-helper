@@ -378,7 +378,7 @@ const EquipmentsSelectionDialog = ({
     switch (stepNumber) {
       case 0:
         return !equipmentsById ? <CircularProgress /> : <>
-          <ChipForm {...filterChipProps} />
+          <Box marginBottom='1rem'><ChipForm {...filterChipProps} /></Box>
           {equipmentsList}
         </>;
       case 1:

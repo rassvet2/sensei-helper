@@ -67,6 +67,37 @@
     "Necklace": "项链"
   },
   "filterResultEmpty": "我找不到符合要求的设备。",
+  "piecesFilter": {
+    {
+      "detail": "详细",
+      "reset": "复位",
+      "cancel": "取消",
+      "close": "确认",
+      "filter": {
+        "byTier": "按层级筛选",
+        "byCategory": "按类别筛选",
+        "byStockStatus": "按库存状态筛选",
+        "inStock": "有库存",
+        "required": "所需",
+        "insufficient": "不足",
+        "all": "全部"
+      },
+      "sortBy": {
+        "title": "排序方式",
+        "default": "默认",
+        "stockStatus": "库存状态",
+        "tier": "层级",
+        "category": "类别",
+        "required": "所需数量",
+        "shortage": "不足数量",
+        "stock": "库存数量"
+      },
+      "amountLabel": {
+        "title": "标签显示",
+        "required": "所需数量",
+        "shortage": "不足数量"
+      }
+  },
   "thinsToNote": {
     "title": "注意事项",
     "pointThisIsEstimation": "推荐扫图次数为估计，与实际可能有出入。",

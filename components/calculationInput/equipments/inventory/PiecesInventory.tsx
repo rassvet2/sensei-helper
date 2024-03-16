@@ -1,10 +1,9 @@
 import styles from './PiecesInventory.module.scss';
 import {
-  Box, Button, Chip, Collapse,
-  Dialog, DialogActions, DialogContent, DialogTitle, Divider,
-  useMediaQuery, useTheme,
+  Box, Button, Chip, Dialog, DialogActions, DialogContent,
+  Popover, PopoverProps, useMediaQuery, useTheme,
 } from '@mui/material';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {IPieceInventory} from 'stores/EquipmentsRequirementStore';
 import {EquipmentsById} from 'components/calculationInput/PiecesCalculationCommonTypes';
 import InventoryUpdateDialog, {
@@ -16,7 +15,7 @@ import {observer} from 'mobx-react-lite';
 import {useTranslation} from 'next-i18next';
 import {LabeledEquipmentCard} from '../LabeledEquipmentCard';
 import {
-  ChipForm, ToggleChip, useChipForm, useEquipmentCategoryGroup, useEquipmentTierGroup,
+  ChipForm, useChipForm, useEquipmentCategoryGroup, useEquipmentTierGroup,
 } from 'components/calculationInput/common/ActionChips';
 import {useWatch} from 'react-hook-form';
 import {Equipment, EquipmentCompositionType} from 'model/Equipment';
@@ -168,14 +167,19 @@ const PiecesInventory = (
   const isDialogMode = useMediaQuery(theme.breakpoints.down('sm'));
   const [isFilterDetailOpened, setFilterDetailOpened] = useState(false);
   const [dialogFormProps, dialogFormControls] = useChipForm(chipFormProps.spec, {defaultValues});
+  const filterPopoverAnchor = useRef<PopoverProps['anchorEl']>(null);
   const callbacks = {
-    handleDetailChipClicked: () => {
+    handleOpenDetail: (e: React.MouseEvent<HTMLInputElement>) => {
+      setFilterDetailOpened(true);
       if (isDialogMode) {
         dialogFormControls.reset(formControls.getValues(), {keepDefaultValues: true});
-        setFilterDetailOpened(true);
       } else {
-        setFilterDetailOpened((it) => !it);
+        const rect = e.currentTarget?.getBoundingClientRect();
+        filterPopoverAnchor.current = {getBoundingClientRect: () => rect, nodeType: 1} as any;
       }
+    },
+    handlePopoverClose: () => {
+      setFilterDetailOpened(false);
     },
     handleResetFilter: () => {
       formControls.reset();
@@ -192,38 +196,34 @@ const PiecesInventory = (
     },
   };
 
-  const filterChips = <Box width='100%' marginBottom='1rem'>
-    <Box className={styles.filterBar}>
-      <ChipForm {...chipFormProps}
-        className={styles.chips}
-        variant={isDialogMode ? 'default' : 'nowrap'} />
-      <Box className={styles.chipButtons}>
-        <ToggleChip color='primary' size='small' label='詳細'
-          onClick={callbacks.handleDetailChipClicked} checked={isFilterDetailOpened} />
-        <Chip color='error' size='small' variant='outlined' label='リセット'
-          onClick={callbacks.handleResetFilter} />
-      </Box>
+  const filterChips = <>
+    <Box width='100%' marginBottom='1rem'>
+      <ChipForm {...chipFormProps} variant='default'>
+        <Box role='group' className={styles.additionalChips}>
+          <Chip color='primary' size='small' variant='outlined' label={t('piecesFilter.detail')}
+            onClick={callbacks.handleOpenDetail} />
+          <Chip color='error' size='small' variant='outlined' label={t('piecesFilter.reset')}
+            onClick={callbacks.handleResetFilter} />
+        </Box>
+      </ChipForm>
     </Box>
     {isDialogMode ? <Dialog open={isFilterDetailOpened}>
-      <DialogTitle>
-        タイトル
-      </DialogTitle>
       <DialogContent>
         <ChipForm {...dialogFormProps} variant='dialog' />
       </DialogContent>
       <DialogActions>
-        <Button onClick={callbacks.handleDialogReset}>リセット</Button>
-        <Button onClick={callbacks.handleDialogCancel}>キャンセル</Button>
-        <Button onClick={callbacks.handleDialogClose}>Ok</Button>
+        <Button onClick={callbacks.handleDialogReset}>{t('piecesFilter.reset')}</Button>
+        <Button onClick={callbacks.handleDialogCancel}>{t('piecesFilter.cancel')}</Button>
+        <Button onClick={callbacks.handleDialogClose}>{t('piecesFilter.close')}</Button>
       </DialogActions>
-    </Dialog> : <Collapse in={isFilterDetailOpened}
-      className={styles.chips}
-      unmountOnExit>
-      <Divider sx={{marginBlock: '0.5rem'}} />
-      <ChipForm {...chipFormProps} variant='collapse' />
-      <Divider sx={{marginBlock: '0.5rem'}} />
-    </Collapse>}
-  </Box>;
+    </Dialog> : <Popover open={isFilterDetailOpened} onClose={callbacks.handlePopoverClose}
+      anchorOrigin={{vertical: 'bottom', horizontal: 'center'}}
+      transformOrigin={{vertical: -16, horizontal: 'center'}}
+      anchorEl={filterPopoverAnchor.current}
+      disableScrollLock>
+      <ChipForm {...chipFormProps} className={styles.filterPopover} variant='dialog' />
+    </Popover>}
+  </>;
 
   return <>
     {
@@ -261,48 +261,51 @@ const PiecesInventory = (
 
 export default observer(PiecesInventory);
 
-const usePiecesFilterSpec = () => ({
-  tier: useEquipmentTierGroup({
-    type: 'check', hide: true,
-    title: 'Tier',
-    minTier: 2, maxTier: 9,
-  }),
-  category: useEquipmentCategoryGroup({
-    type: 'check', hide: true,
-    title: 'カテゴリ',
-  }),
-  filter: {
-    type: 'radio',
-    title: '在庫状態',
-    uncheckable: false,
-    options: [
-      {value: 'default', label: '所持のみ'},
-      {value: 'needed', label: '必要のみ'},
-      {value: 'lacking', label: '不足のみ'},
-      {value: 'all', label: 'すべて'},
-    ],
-  },
-  sort: {
-    type: 'sort',
-    title: '並べ替え',
-    uncheckable: false,
-    options: [
-      {value: 'default', label: 'デフォルト'},
-      {value: 'status', label: '在庫状況'},
-      {value: 'tier', label: 'Tier', hide: true},
-      {value: 'category', label: 'カテゴリ', hide: true},
-      {value: 'needed', label: '必要数', hide: true},
-      {value: 'lacking', label: '不足数', hide: true},
-      {value: 'stock', label: '在庫数', hide: true},
-    ],
-  },
-  display: {
-    type: 'radio',
-    title: 'ラベルの表示',
-    uncheckable: false,
-    options: [
-      {value: 'needed', label: '必要数'},
-      {value: 'lacking', label: '不足数'},
-    ],
-  },
-} as const);
+const usePiecesFilterSpec = () => {
+  const {t} = useTranslation();
+  return {
+    tier: useEquipmentTierGroup({
+      type: 'check', hide: true,
+      title: t('piecesFilter.filter.byTier'),
+      minTier: 2, maxTier: 9,
+    }),
+    category: useEquipmentCategoryGroup({
+      type: 'check', hide: true,
+      title: t('piecesFilter.filter.byCategory'),
+    }),
+    filter: {
+      type: 'radio',
+      title: t('piecesFilter.filter.byStockStatus'),
+      uncheckable: false,
+      options: [
+        {value: 'default', label: t('piecesFilter.filter.inStock')},
+        {value: 'needed', label: t('piecesFilter.filter.required')},
+        {value: 'lacking', label: t('piecesFilter.filter.insufficient')},
+        {value: 'all', label: t('piecesFilter.filter.all')},
+      ],
+    },
+    sort: {
+      type: 'sort',
+      title: t('piecesFilter.sortBy.title'),
+      uncheckable: false,
+      options: [
+        {value: 'default', label: t('piecesFilter.sortBy.default')},
+        {value: 'status', label: t('piecesFilter.sortBy.stockStatus')},
+        {value: 'tier', label: t('piecesFilter.sortBy.tier'), hide: true},
+        {value: 'category', label: t('piecesFilter.sortBy.category'), hide: true},
+        {value: 'needed', label: t('piecesFilter.sortBy.required'), hide: true},
+        {value: 'lacking', label: t('piecesFilter.sortBy.shortage'), hide: true},
+        {value: 'stock', label: t('piecesFilter.sortBy.stock'), hide: true},
+      ],
+    },
+    display: {
+      type: 'radio',
+      title: t('piecesFilter.amountLabel.title'),
+      uncheckable: false,
+      options: [
+        {value: 'needed', label: t('piecesFilter.amountLabel.required')},
+        {value: 'lacking', label: t('piecesFilter.amountLabel.shortage')},
+      ],
+    },
+  } as const;
+};

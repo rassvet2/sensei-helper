@@ -162,7 +162,7 @@ const PiecesSelectionDialog = ({
       </Box>
     </DialogTitle>
     <DialogContent>
-      <ChipForm {...filterChipProps} />
+      <Box marginBottom='1rem'><ChipForm {...filterChipProps} /></Box>
       {piecesById ? piecesList : <CircularProgress />}
     </DialogContent>
     <DialogActions>

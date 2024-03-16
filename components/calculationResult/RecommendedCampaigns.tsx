@@ -24,6 +24,7 @@ import {
   ChipForm, useChipForm, useEquipmentCategoryGroup,
 } from 'components/calculationInput/common/ActionChips';
 import {useWatch} from 'react-hook-form';
+import {Box} from '@mui/material';
 
 
 const RecommendedCampaigns = ({
@@ -83,7 +84,7 @@ const RecommendedCampaigns = ({
   return <React.Fragment>
     <InefficientRequirementWarning isOpened={isInefficientRequirementDialogOpened}
       onCloseDialog={handleCloseInefficientRequirementDialog}/>
-    <ChipForm {...chipFormProps} />
+    <Box marginBottom='1rem'><ChipForm {...chipFormProps} /></Box>
     {
       Object.entries(solution)
           .sort(([keyA, valueA], [keyB, valueB]) =>
