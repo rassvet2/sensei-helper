@@ -1,0 +1,11 @@
+@use 'components/calculationInput/common/common-calculation-input-layout';
+
+.filterPopover {
+  margin-top: 1rem;
+  padding: 1rem;
+}
+
+.additionalChips {
+  @include common-calculation-input-layout.chips-list();
+  place-self: flex-end;
+}

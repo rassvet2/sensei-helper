@@ -70,6 +70,7 @@
   "filterResultEmpty": "条件に合う装備が見つかりません。",
   "piecesFilter": {
     "detail": "詳細",
+    "dialogTitle": "詳細設定",
     "reset": "リセット",
     "cancel": "キャンセル",
     "close": "確認",
@@ -80,7 +81,9 @@
       "inStock": "在庫有り",
       "required": "必要",
       "insufficient": "不足",
-      "all": "すべて"
+      "all": "すべて",
+      "upgradeReady": "強化可能",
+      "upgradeNotReady": "設計図不足"
     },
     "sortBy": {
       "title": "並べ替え",
@@ -90,7 +93,8 @@
       "category": "カテゴリ",
       "required": "必要量",
       "shortage": "不足量",
-      "stock": "在庫数"
+      "stock": "在庫数",
+      "nickname": "ニックネーム"
     },
     "amountLabel": {
       "title": "ラベルの表示",

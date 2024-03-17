@@ -19,7 +19,7 @@ import {
 } from '@mui/material';
 import Box from '@mui/material/Box';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {EquipmentInfoToEdit, IRequirementByEquipment} from 'stores/EquipmentsRequirementStore';
+import {EquipmentInfoToEdit, IRequirementByEquipmentIn} from 'stores/EquipmentsRequirementStore';
 import BuiButton from 'components/bui/BuiButton';
 import {Equipment, EquipmentCompositionType} from 'model/Equipment';
 import EquipmentCard from 'components/bui/card/EquipmentCard';
@@ -61,7 +61,7 @@ type EquipmentsSelectionDialogPros = {
   equipmentsById: EquipmentsById,
   equipmentsByTier: Map<number, Equipment[]>,
   equipmentsByTierAndCategory: EquipmentsByTierAndCategory,
-  handleAddEquipmentRequirement: (requirementByEquipment: IRequirementByEquipment) => void,
+  handleAddEquipmentRequirement: (requirementByEquipment: IRequirementByEquipmentIn) => void,
   handleUpdateEquipmentRequirement: (equipmentInfoToEdit: EquipmentInfoToEdit) => void,
   handleDeleteEquipmentRequirement: (equipmentInfoToEdit: EquipmentInfoToEdit) => void,
   handleCancel: () => void,
@@ -184,7 +184,7 @@ const EquipmentsSelectionDialog = ({
       targetEquipmentId: targetEquipId,
       count: parseInt(neededEquipmentsCount) ?? 1,
       nickname,
-      indexInStoreArray: equipmentInfoToEdit.indexInStoreArray,
+      uuid: equipmentInfoToEdit.uuid,
     };
   }, [isInputValid, baseEquipId, targetEquipId, equipmentInfoToEdit, neededEquipmentsCount, nickname]);
 
@@ -269,7 +269,7 @@ const EquipmentsSelectionDialog = ({
         targetEquipmentId: targetEquipId,
         count: parseInt(formValues.neededEquipmentsCount) ?? 1,
         nickname: formValues.nickname,
-        indexInStoreArray: equipmentInfoToEdit.indexInStoreArray,
+        uuid: equipmentInfoToEdit.uuid,
       });
     } else {
       handleAddEquipmentRequirement({
@@ -290,7 +290,7 @@ const EquipmentsSelectionDialog = ({
       targetEquipmentId: targetEquipId,
       count: parseInt(formValues.neededEquipmentsCount) ?? 1,
       nickname: formValues.nickname,
-      indexInStoreArray: equipmentInfoToEdit.indexInStoreArray,
+      uuid: equipmentInfoToEdit.uuid,
     });
   };
 
@@ -311,7 +311,7 @@ const EquipmentsSelectionDialog = ({
       targetEquipmentId: targetEquipId,
       count: parseInt(formValues.neededEquipmentsCount) ?? 1,
       nickname: formValues.nickname,
-      indexInStoreArray: equipmentInfoToEdit.indexInStoreArray,
+      uuid: equipmentInfoToEdit.uuid,
     });
   };
 
@@ -438,7 +438,7 @@ const EquipmentsSelectionDialog = ({
       targetEquipmentId: targetEquipId,
       nickname: getValues().nickname,
       count: parseInt(getValues().neededEquipmentsCount) ?? 1,
-      indexInStoreArray: equipmentInfoToEdit.indexInStoreArray,
+      uuid: equipmentInfoToEdit.uuid,
     });
   }, [baseEquipId, equipmentInfoToEdit, getValues, targetEquipId]);
   const handleUpgradeDialogClose = useCallback(() => {

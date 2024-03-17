@@ -46,7 +46,7 @@
     "max": "Max",
     "reselect": "Reselect",
     "maxLengthIs": "Maximum characters are {{max}}",
-    "enterNickName":  "Enter a nickname(optional)",
+    "enterNickName": "Enter a nickname(optional)",
     "enterNickNameNormalHelperText": "Enter a student name to help you memorize equipment ownership"
   },
   "upgradeDialog": {
@@ -70,6 +70,7 @@
   "filterResultEmpty": "Could not find any equipment matching the filter.",
   "piecesFilter": {
     "detail": "Detail",
+    "dialogTitle": "Advanced Filter & Sort",
     "reset": "Reset",
     "cancel": "Cencel",
     "close": "Confirm",
@@ -80,7 +81,9 @@
       "inStock": "In Stock",
       "required": "Required",
       "insufficient": "Insufficient",
-      "all": "All"
+      "all": "All",
+      "upgradeReady": "Ready for Upgrade",
+      "upgradeNotReady": "Insufficient"
     },
     "sortBy": {
       "title": "Sort by",
@@ -90,7 +93,8 @@
       "category": "Category",
       "required": "Required Qty",
       "shortage": "Insufficient Qty",
-      "stock": "Stock Count"
+      "stock": "Stock Count",
+      "nickname": "Nickname"
     },
     "amountLabel": {
       "title": "Label Display",
@@ -144,4 +148,3 @@
     "title": "Blue Archive equipments farming calculator"
   }
 }
-

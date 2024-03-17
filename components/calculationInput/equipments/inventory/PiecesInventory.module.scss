@@ -8,13 +8,3 @@
 .editButton{
   @include common-calculation-input-layout.list-end-button-position;
 }
-
-.filterPopover {
-  padding: 1rem;
-  // max-width: 40rem;
-}
-
-.additionalChips {
-  @include common-calculation-input-layout.chips-list();
-  place-self: flex-end;
-}
