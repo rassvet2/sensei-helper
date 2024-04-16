@@ -22,6 +22,7 @@
     "maximumIs": "最大値は{{max}}です",
     "quantity": "欲しい数",
     "inStockCount": "所持数",
+    "addToInventory": "獲得した設計図",
     "obtainedCount": "獲得数"
   },
   "selectInputMode": "入力モード",
@@ -45,6 +46,14 @@
     "maxLengthIs": "{{max}}文字以内",
     "enterNickName":  "ニックネーム入力（任意）",
     "enterNickNameNormalHelperText": "生徒の名前をメモとして入力すれば、装備の管理ができます"
+  },
+  "filterResultEmpty": "条件に合う装備が見つかりません。",
+  "piecesFilter": {
+    "filter": {
+      "required": "必要",
+      "insufficient": "不足",
+      "all": "すべて"
+    }
   },
   "thinsToNote": {
     "title": "注記",

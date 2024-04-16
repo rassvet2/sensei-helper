@@ -11,11 +11,12 @@ interface PositiveIntegerOnlyInputProps<T extends FieldValues> {
   helperText: string;
   min?: number;
   inputLabel?: string;
+  focused?: boolean;
 }
 
 const PositiveIntegerOnlyInput = function<T>({
   name, control, showError, helperText,
-  min = 1, inputLabel,
+  min = 1, inputLabel, focused,
 }: PositiveIntegerOnlyInputProps<T>) {
   const {t} = useTranslation('home');
   return <Controller
@@ -42,6 +43,7 @@ const PositiveIntegerOnlyInput = function<T>({
     render={({field}) => (
       <TextField
         {...field}
+        inputRef={(elm) => elm && focused && elm.focus()}
         inputProps={{pattern: '\\d*'}}
         variant="outlined"
         error={showError}

@@ -1,9 +1,13 @@
 import styles from './AddToInventoryDialog.module.scss';
 import {
+  Box,
   Button, Dialog, DialogActions, DialogContent, DialogTitle,
+  Stack,
+  ToggleButton,
+  ToggleButtonGroup,
   useMediaQuery, useTheme,
 } from '@mui/material';
-import React, {useEffect, useMemo, useReducer} from 'react';
+import React, {useEffect, useMemo, useReducer, useState} from 'react';
 import {useTranslation} from 'next-i18next';
 import {useForm} from 'react-hook-form';
 import {
@@ -44,23 +48,30 @@ const AddToInventoryDialog = ({
     open && notifyOpened();
   }, [open]);
 
-  const pieceIds = useMemo(() => drops.map((drop) => drop.id), [drops]);
+  const [mode, setMode] = useState<'all' | 'lack' | 'required'>('lack');
+
   const pieces = useMemo(() => {
     // 20-3: Necklace, Watch, Bag
     // 20-4: Watch, Charm, Badge
     // 13-1: Shoes, Gloves, Hat
     // descending tier -> descending category order?
-    return Array.from(piecesState.values())
-        .filter((state) => pieceIds.includes(state.pieceId) && state.needCount > 0)
-        .sort(buildComparator(
-            (piece) => equipById.get(piece.pieceId),
-            buildComparator((e) => e.tier, Comparators.numberDescending),
-            buildComparator((e) => e.category, buildArrayIndexComparator(
-                EquipmentCategories,
-                SortingOrder.Descending
-            )),
-        ));
-  }, [piecesState, pieceIds, equipById]);
+    return drops.map(({id}) => (piecesState.get(id) ?? {
+      pieceId: id,
+      needCount: 0,
+      inStockCount: 0,
+    })).filter((state) => ({
+      all: true,
+      lack: state.needCount < state.inStockCount,
+      required: state.needCount > 0,
+    }[mode])).sort(buildComparator(
+        (piece) => equipById.get(piece.pieceId),
+        buildComparator((e) => e.tier, Comparators.numberDescending),
+        buildComparator((e) => e.category, buildArrayIndexComparator(
+            EquipmentCategories,
+            SortingOrder.Descending
+        )),
+    ));
+  }, [drops, piecesState, mode, equipById]);
   const defaultValues = useMemo(() => {
     return pieces.reduce<InventoryForm>((acc, piece) => {
       acc[piece.pieceId] = '';
@@ -102,26 +113,35 @@ const AddToInventoryDialog = ({
   return !onceOpen ? null : <Dialog open={open} keepMounted fullWidth
     fullScreen={hasManyPieces() && isFullScreen}
     maxWidth={hasManyPieces() && 'xl'}>
-    <DialogTitle>獲得した設計図</DialogTitle>
+    <Stack component={DialogTitle} direction='row' alignItems='center'>
+      {t('addPieceDialog.addToInventory')}
+      <Box flexGrow={1} />
+      <ToggleButtonGroup exclusive size='small'
+        value={mode} onChange={(e, value) => value && setMode(value)}>
+        <ToggleButton value='all'>{t('piecesFilter.filter.all')}</ToggleButton>
+        <ToggleButton value='lack'>{t('piecesFilter.filter.insufficient')}</ToggleButton>
+        <ToggleButton value='required'>{t('piecesFilter.filter.required')}</ToggleButton>
+      </ToggleButtonGroup>
+    </Stack>
 
     <DialogContent className={styles.dialogContentContainer}>
       <div className={styles.filler}></div>
       <div className={`${styles.container} ${isXsOrSmallerScreen && styles.xs}`}>
-        {pieces.map((piece) => {
+        {pieces.map((piece, index) => {
           return <ObtainedPieceBox key={piece.pieceId} allErrors={allErrors}
             control={control}
             equipmentsById={equipById}
-            piece={piece}/>;
+            piece={piece}
+            focused={index === 0}/>;
         })}
       </div>
+      {pieces.length === 0 && <div>{t('filterResultEmpty')}</div>}
       <div className={styles.filler}></div>
     </DialogContent>
 
     <DialogActions>
       <Button onClick={handleCancelDialog}>{t('cancelButton')}</Button>
-      <Button onClick={handleUpdateInventory} disabled={!isCountValid}>
-        追加
-      </Button>
+      <Button onClick={handleUpdateInventory} disabled={!isCountValid}>{t('addButton')}</Button>
     </DialogActions>
   </Dialog>;
 };

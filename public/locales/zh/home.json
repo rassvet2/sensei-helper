@@ -21,7 +21,9 @@
     "minimumIs": "不能小于{{min}}",
     "maximumIs": "不能大于{{max}}",
     "quantity": "数量",
-    "inStockCount": "库存数量"
+    "inStockCount": "库存数量",
+    "addToInventory": "获得设计图",
+    "obtainedCount": "收购数量"
   },
   "selectInputMode": "输入模式",
   "selectResultMode": "结果展示模式",
@@ -44,6 +46,14 @@
     "maxLengthIs": "最多输入{{max}}个字",
     "enterNickName":  "添加昵称（选填）",
     "enterNickNameNormalHelperText": "可以输入学生姓名方便记和进行装备管理"
+  },
+  "filterResultEmpty": "我找不到符合要求的设备。",
+  "piecesFilter": {
+    "filter": {
+      "required": "所需",
+      "insufficient": "不足",
+      "all": "全部"
+    }
   },
   "thinsToNote": {
     "title": "注意事项",

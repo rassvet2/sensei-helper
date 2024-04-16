@@ -8,7 +8,8 @@ import React from 'react';
 import {EquipmentsById} from 'components/calculationInput/PiecesCalculationCommonTypes';
 import {PieceState} from 'components/calculationInput/equipments/inventory/PiecesInventory';
 import {Control} from 'react-hook-form/dist/types/form';
-import {InventoryForm} from 'components/calculationInput/equipments/inventory/InventoryUpdateDialog';
+import {InventoryForm}
+  from 'components/calculationInput/equipments/inventory/InventoryUpdateDialog';
 import {useTranslation} from 'next-i18next';
 
 const ObtainedPieceBox = function({
@@ -16,11 +17,13 @@ const ObtainedPieceBox = function({
   piece,
   control,
   allErrors,
+  focused,
 }: {
   equipmentsById: EquipmentsById,
   piece: PieceState,
   control: Control<InventoryForm>,
   allErrors: any,
+  focused?: boolean,
 }) {
   const {t} = useTranslation('home');
 
@@ -38,7 +41,7 @@ const ObtainedPieceBox = function({
     </Card>
     <Box sx={{mr: 2}}/>
     <PositiveIntegerOnlyInput name={piece.pieceId}
-      min={0}
+      min={0} focused={focused}
       control={control} showError={!!allErrors[piece.pieceId]}
       helperText={allErrors[piece.pieceId]?.message ?? ''}
       inputLabel={t('addPieceDialog.obtainedCount')} />

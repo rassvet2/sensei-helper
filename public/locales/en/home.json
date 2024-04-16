@@ -21,7 +21,9 @@
     "minimumIs": "Minimum is {{min}}",
     "maximumIs": "Maximum is {{max}}",
     "quantity": "Quantity",
-    "inStockCount": "In Stock Number"
+    "inStockCount": "In Stock Number",
+    "addToInventory": "Acquired Pieces",
+    "obtainedCount": "Acquisitions"
   },
   "selectInputMode": "Select input mode",
   "selectResultMode": "Output Mode",
@@ -45,6 +47,14 @@
     "maxLengthIs": "Maximum characters are {{max}}",
     "enterNickName":  "Enter a nickname(optional)",
     "enterNickNameNormalHelperText": "Enter a student name to help you memorize equipment ownership"
+  },
+  "filterResultEmpty": "Could not find any equipment matching the filter.",
+  "piecesFilter": {
+    "filter": {
+      "required": "Required",
+      "insufficient": "Insufficient",
+      "all": "All"
+    }
   },
   "thinsToNote": {
     "title": "Things to note",
