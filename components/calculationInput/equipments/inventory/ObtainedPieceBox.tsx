@@ -12,19 +12,23 @@ import {InventoryForm}
   from 'components/calculationInput/equipments/inventory/InventoryUpdateDialog';
 import {useTranslation} from 'next-i18next';
 
+interface ObtainedPieceBoxProps
+  extends Omit<React.ComponentProps<typeof PositiveIntegerOnlyInput>,
+    'control' | 'name' | 'showError' | 'helperText' | 'inputLabel'>
+{
+  equipmentsById: EquipmentsById,
+  piece: PieceState,
+  control: Control<InventoryForm>,
+  allErrors: any,
+}
+
 const ObtainedPieceBox = function({
   equipmentsById,
   piece,
   control,
   allErrors,
-  focused,
-}: {
-  equipmentsById: EquipmentsById,
-  piece: PieceState,
-  control: Control<InventoryForm>,
-  allErrors: any,
-  focused?: boolean,
-}) {
+  ...others
+}: ObtainedPieceBoxProps) {
   const {t} = useTranslation('home');
 
   const pieceIcon = equipmentsById.get(piece.pieceId)?.icon;
@@ -40,8 +44,8 @@ const ObtainedPieceBox = function({
       </CardActionArea>
     </Card>
     <Box sx={{mr: 2}}/>
-    <PositiveIntegerOnlyInput name={piece.pieceId}
-      min={0} focused={focused}
+    <PositiveIntegerOnlyInput {...others} name={piece.pieceId}
+      min={0}
       control={control} showError={!!allErrors[piece.pieceId]}
       helperText={allErrors[piece.pieceId]?.message ?? ''}
       inputLabel={t('addPieceDialog.obtainedCount')} />

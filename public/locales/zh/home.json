@@ -75,6 +75,7 @@
   },
   "stageSweepingTimes": "{{sweepingTimes}}次",
   "stageIsSkipped": "跳过",
+  "fillRewards": "填写结果",
   "possibleRewards": "可获得奖励",
   "otherStages": "其他关卡",
   "otherStagesSkippedReason": "因刷图效率不高而跳过",

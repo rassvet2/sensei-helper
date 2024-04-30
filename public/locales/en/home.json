@@ -76,6 +76,7 @@
   },
   "stageSweepingTimes": "{{sweepingTimes}} times",
   "stageIsSkipped": "Skipped",
+  "fillRewards": "Fill in the Rewards",
   "possibleRewards": "Possible Rewards",
   "otherStages": "Other stages",
   "otherStagesSkippedReason": "Skipped because of inefficiency",

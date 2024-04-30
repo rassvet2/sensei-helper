@@ -75,6 +75,7 @@
   },
   "stageSweepingTimes": "{{sweepingTimes}}回",
   "stageIsSkipped": "スキップ",
+  "fillRewards": "結果を記入",
   "possibleRewards": "獲得可能報酬",
   "otherStages": "他の任務",
   "otherStagesSkippedReason": "非効率のためスキップしました",
