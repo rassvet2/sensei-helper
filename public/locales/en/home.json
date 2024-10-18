@@ -24,7 +24,9 @@
     "minimumIs": "Minimum is {{min}}",
     "maximumIs": "Maximum is {{max}}",
     "quantity": "Quantity",
-    "inStockCount": "In Stock Number"
+    "inStockCount": "In Stock Number",
+    "addToInventory": "Acquired Pieces",
+    "obtainedCount": "Acquisitions"
   },
   "selectInputMode": "Select input mode",
   "selectResultMode": "Output Mode",
@@ -118,6 +120,7 @@
   },
   "stageSweepingTimes": "{{sweepingTimes}} times",
   "stageIsSkipped": "Skipped",
+  "fillRewards": "Fill in the Rewards",
   "possibleRewards": "Possible Rewards",
   "otherStages": "Other stages",
   "otherStagesSkippedReason": "Skipped because of inefficiency",
@@ -146,7 +149,7 @@
     "exportFile": "Export",
     "formLabel": "JSON",
     "enableEditing": "Enable Editing",
-    "resetForm": "Reset", 
+    "resetForm": "Reset",
     "helpText": {
       "default": "Changes are not applied until the dialog is closed",
       "required": "Input JSON"
@@ -162,4 +165,3 @@
     "title": "Blue Archive equipments farming calculator"
   }
 }
-

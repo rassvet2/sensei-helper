@@ -9,7 +9,9 @@ import {Equipment, EquipmentCompositionType} from 'model/Equipment';
 import {Campaign} from 'model/Campaign';
 import RecommendedCampaigns from 'components/calculationResult/RecommendedCampaigns';
 import CalculationInputCard from 'components/calculationInput/CalculationInputCard';
-import {CampaignsById, EquipmentsById} from 'components/calculationInput/PiecesCalculationCommonTypes';
+import {
+  CampaignsById, EquipmentsById,
+} from 'components/calculationInput/PiecesCalculationCommonTypes';
 import useSWR from 'swr';
 import RecommendationsSummary from 'components/calculationResult/RecommendationsSummary';
 import IgnoredCampaigns from 'components/calculationResult/IgnoredCampaigns';
@@ -23,7 +25,10 @@ import {
   hashTierAndCategoryKey,
 } from 'components/calculationInput/equipments/EquipmentsInput';
 import {PieceState} from 'components/calculationInput/equipments/inventory/PiecesInventory';
-import {calculatePiecesState} from 'components/calculationInput/equipments/inventory/piecesStateCalculator';
+import {calculatePiecesState}
+  from 'components/calculationInput/equipments/inventory/piecesStateCalculator';
+import {AddToInventoryDialogContextProvider}
+  from './calculationInput/equipments/inventory/AddToInventoryDialog';
 
 const ScrollHereOnMount = () => {
   const ref = useRef<HTMLDivElement | null>(null);
@@ -163,10 +168,10 @@ const Home: NextPage = observer((props) => {
       onSetSolution={onSetSolution}
     />
 
-    {
-      store.equipmentsRequirementStore.resultMode === ResultMode.LinearProgram ?
-          buildLinearProgrammingSolution() : buildListStageOnlyResult()
-    }
+    <AddToInventoryDialogContextProvider equipById={equipmentsById} piecesState={piecesState}>
+      {store.equipmentsRequirementStore.resultMode === ResultMode.LinearProgram ?
+        buildLinearProgrammingSolution() : buildListStageOnlyResult()}
+    </AddToInventoryDialogContextProvider>
   </>;
 });
 

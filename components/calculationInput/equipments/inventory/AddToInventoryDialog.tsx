@@ -1,9 +1,9 @@
 import styles from './AddToInventoryDialog.module.scss';
 import {
-  Button, Dialog, DialogActions, DialogContent, DialogTitle,
-  useMediaQuery, useTheme,
+  Box, Button, Dialog, DialogActions, DialogContent, DialogTitle,
+  Stack, ToggleButton, ToggleButtonGroup, useMediaQuery, useTheme,
 } from '@mui/material';
-import React, {useEffect, useMemo, useReducer} from 'react';
+import React, {Reducer, useContext, useEffect, useMemo, useReducer, useState} from 'react';
 import {useTranslation} from 'next-i18next';
 import {useForm} from 'react-hook-form';
 import {
@@ -17,7 +17,63 @@ import {
   Comparators, SortingOrder,
   buildArrayIndexComparator, buildComparator,
 } from 'common/sortUtils';
-import {EquipmentCategories} from 'model/Equipment';
+import {EquipmentCategories, EquipmentCompositionType} from 'model/Equipment';
+import {randomId} from 'common/randomId';
+
+const AddToInventoryDialogContext = React.createContext({
+  open: (drops: DropPieceIdWithProbAndCount[]) => {},
+  close: () => {},
+});
+
+export const useAddToInventoryDialogContext = () => {
+  const {open, close} = useContext(AddToInventoryDialogContext);
+  return [open, close] as const;
+};
+
+export const AddToInventoryDialogContextProvider = ({
+  equipById,
+  piecesState,
+  children,
+}: {
+  equipById: EquipmentsById,
+  piecesState: Map<string, PieceState>,
+  children?: React.ReactNode,
+}) => {
+  const [{open, drops}, dispatch] = useReducer<Reducer<{
+    open: boolean;
+    key: string,
+    drops: DropPieceIdWithProbAndCount[],
+  }, {
+    action: 'open',
+    drops: DropPieceIdWithProbAndCount[],
+  } | {
+    action: 'close'
+  }>>((state, action) => (
+    action.action === 'open' ? {
+      open: true,
+      drops: action.drops,
+      key: randomId(),
+    } : {
+      ...state,
+      open: false,
+    }
+  ), {
+    open: false,
+    key: '',
+    drops: [],
+  });
+  const contextValue = useMemo(() => ({
+    open: (drops: DropPieceIdWithProbAndCount[]) => dispatch({action: 'open', drops}),
+    close: () => dispatch({action: 'close'}),
+  }), [dispatch]);
+
+  return <AddToInventoryDialogContext.Provider value={contextValue}>
+    <AddToInventoryDialog open={open}
+      onUpdate={contextValue.close} onCancel={contextValue.close}
+      equipById={equipById} piecesState={piecesState} drops={drops} />
+    {children}
+  </AddToInventoryDialogContext.Provider>;
+};
 
 const AddToInventoryDialog = ({
   open,
@@ -38,90 +94,106 @@ const AddToInventoryDialog = ({
   const {t} = useTranslation('home');
   const theme = useTheme();
 
-  // hack to lazy rendering
-  const [onceOpen, notifyOpened] = useReducer((x) => true, false);
-  useEffect(() => {
-    open && notifyOpened();
-  }, [open]);
+  const [mode, setMode] = useState<'all' | 'lack' | 'required'>('lack');
 
-  const pieceIds = useMemo(() => drops.map((drop) => drop.id), [drops]);
   const pieces = useMemo(() => {
     // 20-3: Necklace, Watch, Bag
     // 20-4: Watch, Charm, Badge
     // 13-1: Shoes, Gloves, Hat
     // descending tier -> descending category order?
-    return Array.from(piecesState.values())
-        .filter((state) => pieceIds.includes(state.pieceId) && state.needCount > 0)
-        .sort(buildComparator(
-            (piece) => equipById.get(piece.pieceId),
-            buildComparator((e) => e.tier, Comparators.numberDescending),
-            buildComparator((e) => e.category, buildArrayIndexComparator(
-                EquipmentCategories,
-                SortingOrder.Descending
-            )),
-        ));
-  }, [piecesState, pieceIds, equipById]);
-  const defaultValues = useMemo(() => {
-    return pieces.reduce<InventoryForm>((acc, piece) => {
-      acc[piece.pieceId] = '';
-      return acc;
-    }, {});
-  }, [pieces]);
+    return drops.filter(({id}) => (
+      equipById.get(id)?.equipmentCompositionType === EquipmentCompositionType.Piece
+    )).map(({id}) => (piecesState.get(id) ?? {
+      pieceId: id,
+      needCount: 0,
+      inStockCount: store.equipmentsRequirementStore.piecesInventory.get(id)?.inStockCount ?? 0,
+    })).filter((state) => ({
+      all: true,
+      lack: state.needCount > state.inStockCount,
+      required: state.needCount > 0,
+    }[mode])).sort(buildComparator(
+        (piece) => equipById.get(piece.pieceId),
+        buildComparator((e) => e.tier, Comparators.numberDescending),
+        buildComparator((e) => e.category, buildArrayIndexComparator(
+            EquipmentCategories,
+            SortingOrder.Descending
+        )),
+    ));
+  }, [drops, equipById, piecesState, store.equipmentsRequirementStore.piecesInventory, mode]);
 
   const {
-    control,
-    formState: {isValid: isCountValid, errors: allErrors},
-    getValues,
-    reset,
+    control, formState,
+    getValues, reset,
+    getFieldState, setFocus,
+    handleSubmit,
   } = useForm<InventoryForm>({
     mode: 'onChange',
-    defaultValues,
+    defaultValues: Object.fromEntries(drops.map(({id}) => [id, ''])),
   });
 
-  const handleCancelDialog = () => {
+  useEffect(() => {
+    if (!open) return;
+    reset(Object.fromEntries(drops.map(({id}) => [id, ''])));
+  }, [drops, open, reset]);
+
+  const handleCancel = () => {
     onCancel();
-    reset();
   };
 
-  const handleUpdateInventory = () => {
-    onUpdate(getValues());
-    const inventory = Object.entries(getValues()).reduce<InventoryForm>((acc, [id, value]) => {
-      const count = parseInt(value) ?? 0;
-      const stock = piecesState.get(id)?.inStockCount ?? 0;
-      acc[id] = `${count + stock}`;
-      return acc;
-    }, {});
-    store.equipmentsRequirementStore.updateInventory(inventory);
-    reset();
-  };
+  const handleUpdate = handleSubmit((values) => {
+    onUpdate(values);
+    store.equipmentsRequirementStore.addPiecesToInventory(values);
+  }, (errors) => {
+    const field = Object.entries(errors).find(([, it]) => it && 'ref' in it)?.[0];
+    console.log(errors);
+    field && setFocus(field);
+  });
 
   const isFullScreen = useMediaQuery(theme.breakpoints.down('md'));
   const isXsOrSmallerScreen = useMediaQuery(theme.breakpoints.down('sm'));
   const hasManyPieces = () => pieces.length > 3;
 
-  return !onceOpen ? null : <Dialog open={open} keepMounted fullWidth
+  useEffect(() => {
+    const id = setTimeout(() => {
+      const field = pieces.find(({pieceId}) => (
+        getValues(pieceId) === '' || getFieldState(pieceId).invalid
+      )) ?? pieces[0];
+      field && setFocus(field.pieceId, {shouldSelect: true});
+    }, 100);
+    return () => clearTimeout(id);
+  }, [equipById, getFieldState, getValues, open, pieces, setFocus]);
+
+  return <Dialog open={open} fullWidth
     fullScreen={hasManyPieces() && isFullScreen}
     maxWidth={hasManyPieces() && 'xl'}>
-    <DialogTitle>獲得した設計図</DialogTitle>
+    <Stack component={DialogTitle} direction='row' alignItems='center'>
+      {t('addPieceDialog.addToInventory')}
+      <Box flexGrow={1} />
+      <ToggleButtonGroup exclusive size='small'
+        value={mode} onChange={(e, value) => value && setMode(value)}>
+        <ToggleButton value='all'>{t('piecesFilter.filter.all')}</ToggleButton>
+        <ToggleButton value='lack'>{t('piecesFilter.filter.insufficient')}</ToggleButton>
+        <ToggleButton value='required'>{t('piecesFilter.filter.required')}</ToggleButton>
+      </ToggleButtonGroup>
+    </Stack>
 
     <DialogContent className={styles.dialogContentContainer}>
       <div className={styles.filler}></div>
       <div className={`${styles.container} ${isXsOrSmallerScreen && styles.xs}`}>
         {pieces.map((piece) => {
-          return <ObtainedPieceBox key={piece.pieceId} allErrors={allErrors}
-            control={control}
-            equipmentsById={equipById}
-            piece={piece}/>;
+          return <ObtainedPieceBox key={piece.pieceId}
+            allErrors={formState.errors} control={control}
+            equipmentsById={equipById} piece={piece}
+            required={false} />;
         })}
       </div>
+      {pieces.length === 0 && <div>{t('filterResultEmpty')}</div>}
       <div className={styles.filler}></div>
     </DialogContent>
 
     <DialogActions>
-      <Button onClick={handleCancelDialog}>{t('cancelButton')}</Button>
-      <Button onClick={handleUpdateInventory} disabled={!isCountValid}>
-        追加
-      </Button>
+      <Button onClick={handleCancel}>{t('cancelButton')}</Button>
+      <Button onClick={handleUpdate} disabled={!formState.isValid}>{t('addButton')}</Button>
     </DialogActions>
   </Dialog>;
 };

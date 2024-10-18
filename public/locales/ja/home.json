@@ -25,6 +25,7 @@
     "maximumIs": "最大値は{{max}}です",
     "quantity": "欲しい数",
     "inStockCount": "所持数",
+    "addToInventory": "獲得した設計図",
     "obtainedCount": "獲得数"
   },
   "selectInputMode": "入力モード",
@@ -118,6 +119,7 @@
   },
   "stageSweepingTimes": "{{sweepingTimes}}回",
   "stageIsSkipped": "スキップ",
+  "fillRewards": "結果を記入",
   "possibleRewards": "獲得可能報酬",
   "otherStages": "他の任務",
   "otherStagesSkippedReason": "非効率のためスキップしました",
@@ -146,7 +148,7 @@
     "exportFile": "エクスポート",
     "formLabel": "JSON",
     "enableEditing": "編集を有効にする",
-    "resetForm": "リセット", 
+    "resetForm": "リセット",
     "helpText": {
       "default": "変更はダイアログを閉じるまで適用されません",
       "required": "JSONを入力してください"
