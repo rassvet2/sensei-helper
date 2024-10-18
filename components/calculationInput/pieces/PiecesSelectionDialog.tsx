@@ -12,7 +12,7 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {Equipment, EquipmentCompositionType} from 'model/Equipment';
 import styles from 'components/calculationInput/pieces/PiecesSelectionDialog.module.scss';
 import {useForm} from 'react-hook-form';
-import {IRequirementByPiece, PieceInfoToEdit} from 'stores/EquipmentsRequirementStore';
+import {IRequirementByPieceIn, PieceInfoToEdit} from 'stores/EquipmentsRequirementStore';
 import Box from '@mui/material/Box';
 import {useTranslation} from 'next-i18next';
 import PositiveIntegerOnlyInput from 'components/calculationInput/common/PositiveIntegerOnlyInput';
@@ -31,7 +31,7 @@ type PiecesSelectionDialogPros = {
   piecesByTier: Map<number, Equipment[]>,
   piecesById: Map<string, Equipment>,
   isOpened: boolean,
-  handleAddPieceRequirement: (requirementByPiece: IRequirementByPiece) => void,
+  handleAddPieceRequirement: (requirementByPiece: IRequirementByPieceIn) => void,
   handleUpdatePieceRequirement: (pieceInfoToEdit: PieceInfoToEdit) => void,
   handleDeletePieceRequirement: (pieceInfoToEdit: PieceInfoToEdit) => void,
   handleCancel: () => void,
@@ -86,7 +86,7 @@ const PiecesSelectionDialog = ({
         handleUpdatePieceRequirement({
           pieceId: selectedPieceId,
           count: parseInt(getValues().neededPieceCount) ?? 1,
-          indexInStoreArray: pieceInfoToEdit.indexInStoreArray,
+          uuid: pieceInfoToEdit.uuid,
         });
       } else {
         handleAddPieceRequirement({
@@ -102,7 +102,7 @@ const PiecesSelectionDialog = ({
       handleDeletePieceRequirement({
         pieceId: selectedPieceId,
         count: parseInt(getValues().neededPieceCount) ?? 1,
-        indexInStoreArray: pieceInfoToEdit.indexInStoreArray,
+        uuid: pieceInfoToEdit.uuid,
       });
     }
   };

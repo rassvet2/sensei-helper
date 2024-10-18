@@ -8,7 +8,7 @@ import {getRewardsByRegion} from 'common/gameDataHandlerUtil';
 export type PieceDropProb = {[key:string]: number};
 
 export const calculateSolution = (
-    requirements: IRequirementByPiece[],
+    requirements: Pick<IRequirementByPiece, 'pieceId' | 'count'>[],
     normalMissionItemDropRatio: number,
     piecesDropByCampaignId: Map<string, Campaign>,
     excludeInefficientStages = false,

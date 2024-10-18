@@ -6,15 +6,22 @@ import PiecesSelectionDialog from './pieces/PiecesSelectionDialog';
 import React, {useMemo, useState} from 'react';
 import {Equipment, EquipmentCompositionType} from 'model/Equipment';
 import {IWizStore} from 'stores/WizStore';
-import {IRequirementByPiece, PieceInfoToEdit, RequirementMode, ResultMode} from 'stores/EquipmentsRequirementStore';
+import {
+  IRequirementByPiece, IRequirementByPieceIn,
+  PieceInfoToEdit, RequirementMode, ResultMode,
+} from 'stores/EquipmentsRequirementStore';
 import {calculateSolution} from 'components/calculationInput/linearProgrammingSolver';
-import {CampaignsById, EquipmentsById} from 'components/calculationInput/PiecesCalculationCommonTypes';
+import {
+  CampaignsById, EquipmentsById,
+} from 'components/calculationInput/PiecesCalculationCommonTypes';
 import Grid from '@mui/material/Unstable_Grid2';
 import {observer} from 'mobx-react-lite';
 import DropCampaignSelection from 'components/calculationInput/DropCampaignSelection';
 import {useTranslation} from 'next-i18next';
-import RequirementModeSelection from 'components/calculationInput/RequirementMode/RequirementModeSelection';
-import EquipmentsInput, {EquipmentsByTierAndCategory} from 'components/calculationInput/equipments/EquipmentsInput';
+import RequirementModeSelection
+  from 'components/calculationInput/RequirementMode/RequirementModeSelection';
+import EquipmentsInput, {EquipmentsByTierAndCategory}
+  from 'components/calculationInput/equipments/EquipmentsInput';
 import {PieceState} from 'components/calculationInput/equipments/inventory/PiecesInventory';
 import ResultModeSelection from 'components/calculationInput/ResultMode/ResultModeSelection';
 import {
@@ -27,6 +34,7 @@ import {
   TOTAL_EQUIPMENT_TYPES,
   TOTAL_PIECE_TYPES,
 } from 'common/gtag';
+import {useEquipmentCategoryGroup, useEquipmentTierGroup} from './common/ActionChips';
 import {LabeledEquipmentCard} from './equipments/LabeledEquipmentCard';
 
 type CalculationInputCardProps = {
@@ -52,7 +60,7 @@ const CalculationInputCard = ({store, equipments, campaignsById, equipmentsById,
     setIsOpened(true);
   };
 
-  const handleAddPieceRequirement = (requirementByPiece: IRequirementByPiece) => {
+  const handleAddPieceRequirement = (requirementByPiece: IRequirementByPieceIn) => {
     store.equipmentsRequirementStore.addPiecesRequirement(requirementByPiece);
     setIsOpened(false);
   };
@@ -91,7 +99,7 @@ const CalculationInputCard = ({store, equipments, campaignsById, equipmentsById,
       onSetSolution(ResultMode.ListStages);
       return;
     }
-    let requirementByPieces: IRequirementByPiece[] = [];
+    let requirementByPieces: {pieceId: string, count: number}[] = [];
 
     if (requirementMode === RequirementMode.ByPiece) {
       requirementByPieces = store.equipmentsRequirementStore.requirementByPieces;
@@ -99,12 +107,10 @@ const CalculationInputCard = ({store, equipments, campaignsById, equipmentsById,
     } else {
       piecesState.forEach((state, key) => {
         if (state.needCount <= state.inStockCount) return;
-        requirementByPieces.push(
-            {
-              pieceId: state.pieceId,
-              count: state.needCount - state.inStockCount,
-            }
-        );
+        requirementByPieces.push({
+          pieceId: state.pieceId,
+          count: state.needCount - state.inStockCount,
+        });
       });
     }
     onSetSolution(calculateSolution(requirementByPieces,
@@ -119,7 +125,7 @@ const CalculationInputCard = ({store, equipments, campaignsById, equipmentsById,
     setPieceInfoToEdit(
         {
           ...requirementByPiece,
-          indexInStoreArray: index,
+          uuid: requirementByPiece.uuid,
         }
     );
     setIsOpened(true);
@@ -236,3 +242,38 @@ const CalculationInputCard = ({store, equipments, campaignsById, equipmentsById,
 };
 
 export default observer(CalculationInputCard);
+
+const usePieceRequirementsFilterSpec = (maxTier: number) => {
+  return {
+    tier: useEquipmentTierGroup({
+      type: 'check', hide: true,
+      title: 'Tierでフィルタ',
+      minTier: 2, maxTier,
+    }),
+    category: useEquipmentCategoryGroup({
+      type: 'check', hide: true,
+      title: 'カテゴリでフィルタ',
+    }),
+    filter: {
+      type: 'radio',
+      uncheckable: true,
+      title: '状態でフィルタ',
+      options: [
+        {value: 'sufficient', label: '完了'},
+        {value: 'insufficient', label: '不足'},
+      ],
+    },
+    sort: {
+      type: 'sort',
+      uncheckable: false,
+      title: '並べ替え',
+      options: [
+        {value: 'id', label: 'デフォルト'},
+        {value: 'tier', label: 'Tier'},
+        {value: 'category', label: 'カテゴリ'},
+        {value: 'needed', label: '必要量'},
+        {value: 'lacking', label: '不足数'},
+      ],
+    },
+  } as const; /* satisfies ChipFormSpec */
+};

@@ -47,7 +47,7 @@
     "max": "最大",
     "reselect": "重新选择",
     "maxLengthIs": "最多输入{{max}}个字",
-    "enterNickName":  "添加昵称（选填）",
+    "enterNickName": "添加昵称（选填）",
     "enterNickNameNormalHelperText": "可以输入学生姓名方便记和进行装备管理"
   },
   "upgradeDialog": {
@@ -70,35 +70,38 @@
   },
   "filterResultEmpty": "我找不到符合要求的设备。",
   "piecesFilter": {
-    {
-      "detail": "详细",
-      "reset": "复位",
-      "cancel": "取消",
-      "close": "确认",
-      "filter": {
-        "byTier": "按层级筛选",
-        "byCategory": "按类别筛选",
-        "byStockStatus": "按库存状态筛选",
-        "inStock": "有库存",
-        "required": "所需",
-        "insufficient": "不足",
-        "all": "全部"
-      },
-      "sortBy": {
-        "title": "排序方式",
-        "default": "默认",
-        "stockStatus": "库存状态",
-        "tier": "层级",
-        "category": "类别",
-        "required": "所需数量",
-        "shortage": "不足数量",
-        "stock": "库存数量"
-      },
-      "amountLabel": {
-        "title": "标签显示",
-        "required": "所需数量",
-        "shortage": "不足数量"
-      }
+    "detail": "详细",
+    "dialogTitle": "详细设置",
+    "reset": "复位",
+    "cancel": "取消",
+    "close": "确认",
+    "filter": {
+      "byTier": "按层级筛选",
+      "byCategory": "按类别筛选",
+      "byStockStatus": "按库存状态筛选",
+      "inStock": "有库存",
+      "required": "所需",
+      "insufficient": "不足",
+      "all": "全部",
+      "upgradeReady": "强化可能",
+      "upgradeNotReady": "设计图不足"
+    },
+    "sortBy": {
+      "title": "排序方式",
+      "default": "默认",
+      "stockStatus": "库存状态",
+      "tier": "层级",
+      "category": "类别",
+      "required": "所需数量",
+      "shortage": "不足数量",
+      "stock": "库存数量",
+      "nickname": "昵称"
+    },
+    "amountLabel": {
+      "title": "标签显示",
+      "required": "所需数量",
+      "shortage": "不足数量"
+    }
   },
   "thinsToNote": {
     "title": "注意事项",

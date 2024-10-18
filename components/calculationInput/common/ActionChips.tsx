@@ -5,7 +5,7 @@ import {
   ChangeEventHandler, ComponentPropsWithoutRef, FormHTMLAttributes,
   ForwardedRef, Fragment, InputHTMLAttributes, KeyboardEventHandler,
   MouseEventHandler, MutableRefObject,
-  ReactElement, ReactNode, Ref, RefCallback, forwardRef,
+  ReactElement, ReactNode, Ref, RefAttributes, RefCallback, forwardRef,
 } from 'react';
 import {
   Control, FieldPath, FieldPathByValue, FieldValues,
@@ -47,18 +47,24 @@ export type ChipFormValues<TSpec extends ChipFormSpec> = {
 };
 // #endregion
 
-export const ChipForm = <Spec extends ChipFormSpec>({
-  spec,
-  control,
-  variant = 'default',
-  children: additionalNodes,
-  ...props
-}: FormHTMLAttributes<HTMLFormElement> & {
-  spec: Spec,
-  control: Control<ChipFormValues<Spec>>,
-  variant?: 'default' | 'nowrap' | 'compact' | 'dialog' | 'collapse',
-  children?: ReactNode,
-}) => {
+interface ChipFormProps<Spec extends ChipFormSpec>
+  extends FormHTMLAttributes<HTMLFormElement> {
+    spec: Spec,
+    control: Control<ChipFormValues<Spec>>,
+    variant?: 'default' | 'nowrap' | 'compact' | 'dialog' | 'collapse',
+    children?: ReactNode,
+}
+export const ChipForm = forwardRef(function ChipForm<Spec extends ChipFormSpec>(
+    props: ChipFormProps<Spec>,
+    ref: ForwardedRef<HTMLFormElement>,
+) {
+  const {
+    spec,
+    control,
+    variant = 'default',
+    children: additionalNodes,
+    ...others
+  } = props;
   const config = {
     isInline: ['default', 'nowrap', 'compact'].includes(variant),
     nowrap: variant === 'nowrap',
@@ -67,11 +73,11 @@ export const ChipForm = <Spec extends ChipFormSpec>({
     showTitle: variant === 'dialog',
   };
   const containerClassName = joinClassNames(
-      props.className,
+      others.className,
       config.isInline ? styles.inline : styles.block,
       config.nowrap && styles.nowrap,
   );
-  return <form {...props} className={containerClassName}>
+  return <form ref={ref} {...others} className={containerClassName}>
     {Object.entries(spec).map(([name, {type, options, ...group}]) => {
       const ChipComponent = {check: CheckChip, radio: RadioChip, sort: SortChip}[type];
       return <Fragment key={name}>
@@ -94,6 +100,10 @@ export const ChipForm = <Spec extends ChipFormSpec>({
     })}
     {additionalNodes}
   </form>;
+}) as {
+  <Spec extends ChipFormSpec>(
+    props: RefAttributes<HTMLFormElement> & ChipFormProps<Spec>
+  ): ReactElement
 };
 
 export const useChipForm = <Spec extends ChipFormSpec, TContext = any>(
@@ -307,7 +317,7 @@ export const RadioChip = forwardRef(function RadioChip(
     ref,
 ) {
   const {
-    chipRef, onClick, uncheckable,
+    chipRef, onClick, onKeyUp, uncheckable,
     // eslint-disable-next-line no-unused-vars
     name, rules, shouldUnregister, defaultValue, control,
     ...others
@@ -328,9 +338,15 @@ export const RadioChip = forwardRef(function RadioChip(
     }
   };
 
+  const handleKeyUp: KeyboardEventHandler<HTMLLabelElement> = (e) => {
+    onKeyUp?.(e);
+    if (e.defaultPrevented) return;
+    if (e.key === ' ' || e.key === 'Enter') e.currentTarget.click();
+  };
+
   return <ToggleChip chipRef={combineRefs(ref, chipRef)}
     type='radio' {...others} {...field}
-    checked={checked} onClick={handleClick} onChange={handleChange} />;
+    checked={checked} onClick={handleClick} onChange={handleChange} onKeyUp={handleKeyUp} />;
 }) as ControllerComponent<RadioChipProps, string>;
 
 const SortDscIcon = Sort;

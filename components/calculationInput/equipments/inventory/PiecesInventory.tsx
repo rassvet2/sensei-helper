@@ -1,9 +1,6 @@
 import styles from './PiecesInventory.module.scss';
-import {
-  Box, Button, Chip, Dialog, DialogActions, DialogContent,
-  Popover, PopoverProps, useMediaQuery, useTheme,
-} from '@mui/material';
-import React, {useCallback, useMemo, useRef, useState} from 'react';
+import {Box} from '@mui/material';
+import React, {useCallback, useMemo, useState} from 'react';
 import {IPieceInventory} from 'stores/EquipmentsRequirementStore';
 import {EquipmentsById} from 'components/calculationInput/PiecesCalculationCommonTypes';
 import InventoryUpdateDialog, {
@@ -15,7 +12,7 @@ import {observer} from 'mobx-react-lite';
 import {useTranslation} from 'next-i18next';
 import {LabeledEquipmentCard} from '../LabeledEquipmentCard';
 import {
-  ChipForm, useChipForm, useEquipmentCategoryGroup, useEquipmentTierGroup,
+  useChipForm, useEquipmentCategoryGroup, useEquipmentTierGroup,
 } from 'components/calculationInput/common/ActionChips';
 import {useWatch} from 'react-hook-form';
 import {Equipment, EquipmentCompositionType} from 'model/Equipment';
@@ -23,6 +20,7 @@ import {
   Comparators, SortingOrder, buildArrayIndexComparator, buildComparator, reverseComparator,
 } from 'common/sortUtils';
 import {equipmentCategories} from '../EquipmentFilterChips';
+import {ChipFormWithDetails} from 'components/calculationInput/common/ChipFormWithDetails';
 
 export type PieceState = IPieceInventory & {
   needCount: number;
@@ -86,7 +84,6 @@ const PiecesInventory = (
     }
 ) => {
   const {t} = useTranslation('home');
-  const theme = useTheme();
   const store = useStore();
   const inventoryStore = store.equipmentsRequirementStore.piecesInventory;
 
@@ -114,29 +111,30 @@ const PiecesInventory = (
   const [isUpdateInventoryDialogOpened, setIsUpdateInventoryDialogOpened] = useState(false);
 
 
-  const defaultValues = {
-    tier: [],
-    category: [],
-    filter: 'default' as const,
-    sort: {key: 'default', order: 'dsc'} as const,
-    display: 'needed' as const,
-  };
-  const [chipFormProps, formControls] = useChipForm(usePiecesFilterSpec(), {defaultValues});
+  const maxTier = useMemo(() => Math.max(...pieces.map(([, equip]) => equip.tier)), [pieces]);
+  const [chipFormProps, formControls] = useChipForm(usePiecesFilterSpec(maxTier), {
+    defaultValues: {
+      tier: [],
+      category: [],
+      filter: 'default' as const,
+      sort: {key: 'default', order: 'dsc'} as const,
+      display: 'needed' as const,
+    },
+  });
   const [tierFilter, categoryFilter, filterMode, sortMode, displayMode] = useWatch({
     control: formControls.control,
     name: ['tier', 'category', 'filter', 'sort', 'display'],
   });
 
   const piecesToShow = useMemo(() => {
-    const filter = filterFuncs[filterMode] || filterFuncs.default;
     const comparator = sortFuncs[sortMode.key] || sortFuncs.default;
 
     return pieces
-        .filter(([, piece]) => (
+        .filter(([pieceState, piece]) => (
           (!tierFilter.length || tierFilter.includes(piece.tier)) &&
-            (!categoryFilter.length || categoryFilter.includes(piece.category as any))
+            (!categoryFilter.length || categoryFilter.includes(piece.category)) &&
+            (filterFuncs[filterMode] || filterFuncs.default)(pieceState)
         ))
-        .filter(([piece]) => filter(piece))
         .sort(reverseComparator(comparator, sortMode.order === 'dsc'));
   }, [filterMode, sortMode, pieces, tierFilter, categoryFilter]);
 
@@ -164,67 +162,6 @@ const PiecesInventory = (
     setShowAllPieces(!showAllPieces);
   };
 
-  const isDialogMode = useMediaQuery(theme.breakpoints.down('sm'));
-  const [isFilterDetailOpened, setFilterDetailOpened] = useState(false);
-  const [dialogFormProps, dialogFormControls] = useChipForm(chipFormProps.spec, {defaultValues});
-  const filterPopoverAnchor = useRef<PopoverProps['anchorEl']>(null);
-  const callbacks = {
-    handleOpenDetail: (e: React.MouseEvent<HTMLInputElement>) => {
-      setFilterDetailOpened(true);
-      if (isDialogMode) {
-        dialogFormControls.reset(formControls.getValues(), {keepDefaultValues: true});
-      } else {
-        const rect = e.currentTarget?.getBoundingClientRect();
-        filterPopoverAnchor.current = {getBoundingClientRect: () => rect, nodeType: 1} as any;
-      }
-    },
-    handlePopoverClose: () => {
-      setFilterDetailOpened(false);
-    },
-    handleResetFilter: () => {
-      formControls.reset();
-    },
-    handleDialogReset: () => {
-      dialogFormControls.reset();
-    },
-    handleDialogCancel: () => {
-      setFilterDetailOpened(false);
-    },
-    handleDialogClose: () => {
-      formControls.reset(dialogFormControls.getValues(), {keepDefaultValues: true});
-      setFilterDetailOpened(false);
-    },
-  };
-
-  const filterChips = <>
-    <Box width='100%' marginBottom='1rem'>
-      <ChipForm {...chipFormProps} variant='default'>
-        <Box role='group' className={styles.additionalChips}>
-          <Chip color='primary' size='small' variant='outlined' label={t('piecesFilter.detail')}
-            onClick={callbacks.handleOpenDetail} />
-          <Chip color='error' size='small' variant='outlined' label={t('piecesFilter.reset')}
-            onClick={callbacks.handleResetFilter} />
-        </Box>
-      </ChipForm>
-    </Box>
-    {isDialogMode ? <Dialog open={isFilterDetailOpened}>
-      <DialogContent>
-        <ChipForm {...dialogFormProps} variant='dialog' />
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={callbacks.handleDialogReset}>{t('piecesFilter.reset')}</Button>
-        <Button onClick={callbacks.handleDialogCancel}>{t('piecesFilter.cancel')}</Button>
-        <Button onClick={callbacks.handleDialogClose}>{t('piecesFilter.close')}</Button>
-      </DialogActions>
-    </Dialog> : <Popover open={isFilterDetailOpened} onClose={callbacks.handlePopoverClose}
-      anchorOrigin={{vertical: 'bottom', horizontal: 'center'}}
-      transformOrigin={{vertical: -16, horizontal: 'center'}}
-      anchorEl={filterPopoverAnchor.current}
-      disableScrollLock>
-      <ChipForm {...chipFormProps} className={styles.filterPopover} variant='dialog' />
-    </Popover>}
-  </>;
-
   return <>
     {
       isUpdateInventoryDialogOpened ? <InventoryUpdateDialog pieces={piecesToUpdate}
@@ -233,7 +170,9 @@ const PiecesInventory = (
         equipmentsById={equipmentsById}
         isOpened={isUpdateInventoryDialogOpened} /> : null
     }
-    {filterChips}
+    <Box width='100%' marginBottom='1rem'>
+      <ChipFormWithDetails {...chipFormProps} controls={formControls} />
+    </Box>
     {visiblePieces.map(([inventory], index) => (
       <LabeledEquipmentCard key={index} index={inventory}
         showTier showStockCount showCheckIfEnough
@@ -242,6 +181,7 @@ const PiecesInventory = (
         onClick={openSinglePieceUpdateDialog}
         equipById={equipmentsById} pieceState={inventory} />
     ))}
+    {!visiblePieces.length && <Box alignSelf='center'>{t('filterResultEmpty')}</Box>}
     {
       piecesToShow.length > defaultMaxVisiblePiecesCount ? <div className={styles.editButton}>
         <BuiButton variant={'text'} color={'baTextButtonPrimary'} onClick={toggleShowAllPieces}
@@ -261,7 +201,7 @@ const PiecesInventory = (
 
 export default observer(PiecesInventory);
 
-const usePiecesFilterSpec = () => {
+const usePiecesFilterSpec = (maxTier: number) => {
   const {t} = useTranslation();
   return {
     tier: useEquipmentTierGroup({

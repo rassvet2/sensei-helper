@@ -2,11 +2,16 @@ import {Instance, SnapshotIn, SnapshotOut, types} from 'mobx-state-tree';
 import {InventoryForm}
   from 'components/calculationInput/equipments/inventory/InventoryUpdateDialog';
 
+let equipmentsRequirementStore: IEquipmentsRequirementStore | undefined;
+
 const byPiece = types
     .model('RequirementByPiece', {
       pieceId: types.string,
       count: types.number,
-    });
+    })
+    .volatile(() => ({
+      uuid: crypto.randomUUID(),
+    }));
 
 const byEquipment = types
     .model('RequirementByEquipment', {
@@ -14,7 +19,10 @@ const byEquipment = types
       targetEquipmentId: types.string,
       count: types.number,
       nickname: types.optional(types.string, ''),
-    });
+    })
+    .volatile(() => ({
+      uuid: crypto.randomUUID(),
+    }));
 
 const pieceInventory = types
     .model('PieceInventory', {
@@ -47,26 +55,23 @@ export const EquipmentsRequirementStore = types
       ),
     })
     .actions((self) => {
-      const addPiecesRequirement = (requirement : IRequirementByPiece) => {
-        self.requirementByPieces.push(requirement);
+      const addPiecesRequirement = (requirement: IRequirementByPieceIn) => {
+        self.requirementByPieces.push(byPiece.create(requirement));
       };
 
       const updatePiecesRequirement = (pieceInfoToEdit : PieceInfoToEdit) => {
-        const requirement = self.requirementByPieces[pieceInfoToEdit.indexInStoreArray];
-        if (!requirement) return;
-        self.requirementByPieces[pieceInfoToEdit.indexInStoreArray] = {
-          pieceId: pieceInfoToEdit.pieceId,
-          count: pieceInfoToEdit.count,
-        };
+        const {uuid} = pieceInfoToEdit;
+        const index = self.requirementByPieces.findIndex((it) => it.uuid === uuid);
+        if (index < 0) return;
+        self.requirementByPieces[index] = byPiece.create(pieceInfoToEdit);
       };
 
       const deletePiecesRequirement = (pieceInfoToEdit : PieceInfoToEdit) => {
-        const requirement = self.requirementByPieces[pieceInfoToEdit.indexInStoreArray];
-        if (!requirement) return;
-
-        self.requirementByPieces.splice(pieceInfoToEdit.indexInStoreArray, 1);
+        const {uuid} = pieceInfoToEdit;
+        const index = self.requirementByPieces.findIndex((it) => it.uuid === uuid);
+        if (index < 0) return;
+        self.requirementByPieces.splice(index, 1);
       };
-
 
       const sortEquipmentStoreByNickName = () => {
         self.requirementByEquipments.sort(
@@ -79,33 +84,31 @@ export const EquipmentsRequirementStore = types
         );
       };
 
-      const addEquipmentsRequirement = (requirement : IRequirementByEquipment) => {
-        self.requirementByEquipments.push(requirement);
+      const addEquipmentsRequirement = (requirement : IRequirementByEquipmentIn) => {
+        self.requirementByEquipments.push(byEquipment.create(requirement));
         if (requirement.nickname) {
           sortEquipmentStoreByNickName();
         }
       };
 
       const updateEquipmentsRequirement = (equipInfoToEdit : EquipmentInfoToEdit) => {
-        const requirement = self.requirementByEquipments[equipInfoToEdit.indexInStoreArray];
-        if (!requirement) return;
+        const {uuid} = equipInfoToEdit;
+        const index = self.requirementByEquipments.findIndex((it) => it.uuid === uuid);
+        if (index < 0) return;
+        const {nickname} = self.requirementByEquipments[index];
 
-        self.requirementByEquipments[equipInfoToEdit.indexInStoreArray] = {
-          currentEquipmentId: equipInfoToEdit.currentEquipmentId,
-          targetEquipmentId: equipInfoToEdit.targetEquipmentId,
-          count: equipInfoToEdit.count,
-          nickname: equipInfoToEdit.nickname,
-        };
-        if (equipInfoToEdit.nickname !== requirement.nickname) {
+        self.requirementByEquipments[index] = byEquipment.create(equipInfoToEdit);
+        if (equipInfoToEdit.nickname !== nickname) {
           sortEquipmentStoreByNickName();
         }
       };
 
       const deleteEquipmentsRequirement = (equipInfoToEdit : EquipmentInfoToEdit) => {
-        const requirement = self.requirementByEquipments[equipInfoToEdit.indexInStoreArray];
-        if (!requirement) return;
+        const {uuid} = equipInfoToEdit;
+        const index = self.requirementByEquipments.findIndex((it) => it.uuid === uuid);
+        if (index < 0) return;
 
-        self.requirementByEquipments.splice(equipInfoToEdit.indexInStoreArray, 1);
+        self.requirementByEquipments.splice(index, 1);
       };
 
       const getAllRequiredPieceIds = () => {
@@ -156,15 +159,13 @@ export const EquipmentsRequirementStore = types
     });
 
 export type IEquipmentsRequirementStore = Instance<typeof EquipmentsRequirementStore>
+export type IRequirementByPieceIn = SnapshotIn<typeof byPiece>
 export type IRequirementByPiece = Instance<typeof byPiece>
 export type IPieceInventory = Instance<typeof pieceInventory>
+export type IRequirementByEquipmentIn = SnapshotIn<typeof byEquipment>
 export type IRequirementByEquipment = Instance<typeof byEquipment>
-export type PieceInfoToEdit = IRequirementByPiece & {
-    indexInStoreArray : number
-};
-export type EquipmentInfoToEdit = IRequirementByEquipment & {
-  indexInStoreArray : number
-};
+export type PieceInfoToEdit = IRequirementByPiece;
+export type EquipmentInfoToEdit = IRequirementByEquipment;
 
 export type IStoreSnapshotIn = SnapshotIn<typeof EquipmentsRequirementStore>
 export type IStoreSnapshotOut = SnapshotOut<typeof EquipmentsRequirementStore>
