@@ -14,7 +14,7 @@ import {calculateSolution} from 'components/calculationInput/linearProgrammingSo
 import {
   CampaignsById, EquipmentsById,
 } from 'components/calculationInput/PiecesCalculationCommonTypes';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid2';
 import {observer} from 'mobx-react-lite';
 import DropCampaignSelection from 'components/calculationInput/DropCampaignSelection';
 import {useTranslation} from 'next-i18next';

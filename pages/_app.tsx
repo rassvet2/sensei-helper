@@ -1,5 +1,5 @@
 import {ThemeProvider} from '@mui/material/styles';
-import Grid from '@mui/material/Unstable_Grid2';
+import Grid from '@mui/material/Grid2';
 import CssBaseline from '@mui/material/CssBaseline';
 import 'styles/globals.scss';
 import type {AppProps} from 'next/app';
@@ -31,7 +31,7 @@ function MyApp({Component, pageProps}: AppProps) {
   const [isDataMangementDialogOpened, setDataManagementDialogOpened] = useState(false);
   const [corruptedData, setCorruptedData] = useState('');
 
-  const store = initializeWizStore(pageProps.initialState);
+  const store = initializeWizStore(/* pageProps.initialState */);
   useEffect(() => {
     const persistedSnapshot = getFromLocalStorage(wizStorageLocalStorageKey);
 
@@ -100,7 +100,7 @@ function MyApp({Component, pageProps}: AppProps) {
         </Head>
         <WizAppBar />
         <Grid container display="flex" justifyContent="center" sx={{paddingTop: '1em', paddingBottom: '2em'}}>
-          <Grid xs={11} md={8} xl={6}>
+          <Grid size={{xs: 11, md: 8, xl: 6}}>
             <Component {...pageProps} />
           </Grid>
         </Grid>
@@ -114,4 +114,3 @@ function MyApp({Component, pageProps}: AppProps) {
 }
 
 export default appWithTranslation(MyApp);
-

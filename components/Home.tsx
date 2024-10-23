@@ -54,7 +54,7 @@ const Home: NextPage = observer((props) => {
   const [equipStoreState, notifyEquipStoreChanged] = useReducer((i) => i + 1, 1);
 
 
-  const fetcher = (...urls: string[]) => {
+  const fetcher = (urls: string[]) => {
     const fetchOne = async <ReturnedDataType, >(url: string) => {
       const res = await fetch(url);
       return (await res.json()) as ReturnedDataType;
@@ -176,4 +176,3 @@ const Home: NextPage = observer((props) => {
 });
 
 export default Home;
-
